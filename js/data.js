@@ -666,3 +666,49 @@ const ErrorHandler = {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { DataStore, ErrorHandler };
 }
+// ==========================================
+// 🔗 ALIAS - Để các module khác gọi được
+// ==========================================
+const DataModule = {
+    init: function() {
+        DataStore.loadAll();
+        console.log('✅ DataModule initialized');
+    },
+    
+    getAll: function(collectionName) {
+        return DataStore[collectionName] || [];
+    },
+    
+    getById: function(collectionName, id) {
+        return DataStore.read(collectionName, id);
+    },
+    
+    save: function(collectionName, item) {
+        if (item.id && DataStore.exists(collectionName, item.id)) {
+            return DataStore.update(collectionName, item.id, item) !== null;
+        } else {
+            return DataStore.create(collectionName, item) !== null;
+        }
+    },
+    
+    delete: function(collectionName, id) {
+        return DataStore.delete(collectionName, id);
+    },
+    
+    get: function(key) {
+        return DataStore[key] || null;
+    },
+    
+    set: function(key, value) {
+        DataStore[key] = value;
+        const storageKey = CONFIG.STORAGE_KEYS[key.toUpperCase()] || key;
+        return DataStore.save(storageKey, value);
+    }
+};
+
+// Export global
+window.DataStore = DataStore;
+window.DataModule = DataModule;
+window.ErrorHandler = ErrorHandler;
+
+console.log('✅ DataModule loaded');
