@@ -698,3 +698,60 @@ function formatCurrencyInput(input) {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { UI };
 }
+
+// ==========================================
+// 🔗 ALIAS - UIModule để các module khác gọi được
+// ==========================================
+const UIModule = {
+    init: function() {
+        UI.restoreSidebarState();
+        console.log('✅ UIModule initialized');
+    },
+    
+    showNotification: function(message, type, duration) {
+        UI.showNotification(message, type, duration);
+    },
+    
+    openModal: function(modalId) {
+        UI.openModal(modalId);
+    },
+    
+    closeModal: function(modalId) {
+        UI.closeModal(modalId);
+    },
+    
+    renderPagination: function(currentPage, totalPages, callbackFn) {
+        // Simple pagination HTML
+        let html = '<div class="pagination">';
+        html += `<button onclick="${callbackFn}(1)" ${currentPage === 1 ? 'disabled' : ''}>«</button>`;
+        html += `<button onclick="${callbackFn}(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>‹</button>`;
+        
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === currentPage) {
+                html += `<button class="active">${i}</button>`;
+            } else if (i === 1 || i === totalPages || Math.abs(i - currentPage) <= 2) {
+                html += `<button onclick="${callbackFn}(${i})">${i}</button>`;
+            } else if (Math.abs(i - currentPage) === 3) {
+                html += '<span>...</span>';
+            }
+        }
+        
+        html += `<button onclick="${callbackFn}(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>›</button>`;
+        html += `<button onclick="${callbackFn}(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}>»</button>`;
+        html += '</div>';
+        
+        return html;
+    },
+    
+    showConfirm: function(message, onConfirm, title = 'Xác nhận') {
+        if (confirm(message.replace(/<[^>]*>/g, ''))) {
+            onConfirm();
+        }
+    }
+};
+
+// Export global
+window.UI = UI;
+window.UIModule = UIModule;
+
+console.log('✅ UIModule loaded');
