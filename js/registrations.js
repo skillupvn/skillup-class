@@ -12,7 +12,7 @@ const RegistrationsModule = (function() {
 
     // ============ PRIVATE VARIABLES ============
     let currentPage = 1;
-    let pageSize = CONFIG.DEFAULTS.PAGE_SIZE;
+    let pageSize = (CONFIG && CONFIG.DEFAULTS) ? CONFIG.DEFAULTS.PAGE_SIZE : 10;
     let searchKeyword = '';
     let filterStatus = 'all';
     let filterSubject = 'all';
@@ -750,3 +750,6 @@ const RegistrationsModule = (function() {
         }
     };
 })();
+
+// Export global
+window.AppointmentsModule = AppointmentsModule;  // hoặc RegistrationsModule, ReceiptsModule
