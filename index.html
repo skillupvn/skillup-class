@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Hệ thống quản lý trung tâm dạy học - Quản lý học viên, lịch hẹn, phiếu đăng ký, biên lai">
+    <meta name="author" content="Admin Fz">
+    
+    <title>Quản Lý Trung Tâm - V4.0</title>
+    
+    <!-- Favicon (thêm sau nếu có) -->
+    <!-- <link rel="icon" type="image/png" href="assets/favicon.png"> -->
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Thư viện bên ngoài -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+    <!-- ==========================================
+         🔄 LOADING OVERLAY (Hiện khi load trang)
+    ========================================== -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- ==========================================
+         🏠 MAIN CONTAINER
+    ========================================== -->
+    <div class="container">
+        <!-- ==========================================
+             🏠 HEADER
+        ========================================== -->
+        <div class="header">
+            <div class="header-title">
+                <h1>📚 Hệ Thống Quản Lý Trung Tâm</h1>
+                <p>Version 4.0 - Quản lý toàn diện</p>
+            </div>
+            <div class="header-actions">
+                <!-- Sync Status (Phase 4) -->
+                <div class="sync-status synced" id="syncStatus" style="display: none;">
+                    <span class="sync-status-dot"></span>
+                    <span id="syncStatusText">Đã đồng bộ</span>
+                </div>
+                
+                <button class="btn btn-warning btn-sm" onclick="createManualBackup()">
+                    💾 Backup
+                </button>
+                
+                <!-- User Info (Phase 2 - Login) -->
+                <!-- <div class="header-user" id="headerUser" onclick="toggleUserMenu()">
+                    <div class="header-user-avatar" id="userAvatar">A</div>
+                    <span class="header-user-name" id="userName">Admin</span>
+                </div> -->
+            </div>
+        </div>
+
+        <!-- ==========================================
+             📑 TABS NAVIGATION
+        ========================================== -->
+        <div class="tabs" id="mainTabs">
+            <button class="tab active" data-tab="dashboard" onclick="switchTab('dashboard')">
+                📊 Tổng Quan
+            </button>
+            <button class="tab" data-tab="students" onclick="switchTab('students')">
+                👩‍🎓 Học Viên
+            </button>
+            <button class="tab" data-tab="trial" onclick="switchTab('trial')">
+                🎓 Học Thử
+            </button>
+            <button class="tab" data-tab="appointments" onclick="switchTab('appointments')">
+                📅 Lịch Hẹn
+            </button>
+            <button class="tab" data-tab="registrations" onclick="switchTab('registrations')">
+                📋 Phiếu ĐK
+            </button>
+            <button class="tab" data-tab="receipts" onclick="switchTab('receipts')">
+                🧾 Biên Lai
+            </button>
+            <!-- Tabs mới sẽ thêm ở Phase 3 -->
+            <!-- <button class="tab" data-tab="classes" onclick="switchTab('classes')">
+                🏫 Lớp Học
+            </button>
+            <button class="tab" data-tab="teachers" onclick="switchTab('teachers')">
+                👨‍🏫 Giáo Viên
+            </button>
+            <button class="tab" data-tab="attendance" onclick="switchTab('attendance')">
+                ✅ Điểm Danh
+            </button>
+            <button class="tab" data-tab="debts" onclick="switchTab('debts')">
+                💰 Công Nợ
+            </button> -->
+            <button class="tab" data-tab="categories" onclick="switchTab('categories')">
+                📚 Danh Mục
+            </button>
+            <!-- <button class="tab" data-tab="reports" onclick="switchTab('reports')">
+                📈 Báo Cáo
+            </button> -->
+            <button class="tab" data-tab="export" onclick="switchTab('export')">
+                📤 Xuất Data
+            </button>
+            <button class="tab" data-tab="settings" onclick="switchTab('settings')">
+                ⚙️ Cài Đặt
+            </button>
+        </div>
+
+        <!-- ==========================================
+             📦 CONTENT AREA
+        ========================================== -->
+        <div class="content">
+            
+            <!-- ==========================================
+                 TAB 1: 📊 TỔNG QUAN
+            ========================================== -->
+            <div id="dashboard" class="tab-content active">
+                <div class="page-header">
+                    <h2>📊 Tổng Quan Hệ Thống</h2>
+                </div>
+                
+                <div class="stats" id="dashboardStats">
+                    <!-- Stats sẽ được render bằng JS -->
+                </div>
+
+                <div class="chart-container">
+                    <h3>📈 Doanh Thu 6 Tháng Gần Nhất</h3>
+                    <div class="chart-bars" id="revenueChart">
+                        <!-- Chart sẽ được render bằng JS -->
+                    </div>
+                </div>
+
+                <div class="mt-20">
+                    <h3 style="color: var(--gray-800); margin-bottom: 15px;">📅 Lịch Hẹn Sắp Tới</h3>
+                    <div id="upcomingAppointments">
+                        <!-- Appointments sẽ được render bằng JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 TAB 2: 👩‍🎓 HỌC VIÊN
+            ========================================== -->
+            <div id="students" class="tab-content">
+                <div class="page-header">
+                    <h2>👩‍🎓 Quản Lý Học Viên</h2>
+                    <div class="page-actions">
+                        <button class="btn btn-info" onclick="exportStudentsToExcel()">
+                            📤 Export Excel
+                        </button>
+                        <button class="btn btn-success" onclick="toggleStudentForm()">
+                            ➕ Thêm Học Viên
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Form Thêm/Sửa Học Viên -->
+                <div class="form-section" id="studentFormSection">
+                    <div class="form-section-header">
+                        <h3 id="studentFormTitle">➕ Thêm Học Viên Mới</h3>
+                        <button class="btn btn-sm btn-secondary" onclick="toggleStudentForm()">
+                            ✕ Đóng
+                        </button>
+                    </div>
+                    
+                    <form id="studentForm" onsubmit="saveStudent(event)">
+                        <input type="hidden" id="editStudentId" value="">
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Tên Học Viên <span class="required">*</span></label>
+                                <input type="text" id="studentName" required 
+                                       placeholder="Nhập tên học viên" maxlength="50">
+                            </div>
+                            <div class="form-group">
+                                <label>Tuổi <span class="required">*</span></label>
+                                <input type="number" id="studentAge" required 
+                                       min="3" max="100" placeholder="Nhập tuổi">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Tên Phụ Huynh <span class="required">*</span></label>
+                                <input type="text" id="parentName" required 
+                                       placeholder="Nhập tên phụ huynh" maxlength="50">
+                            </div>
+                            <div class="form-group">
+                                <label>Số Điện Thoại <span class="required">*</span></label>
+                                <input type="tel" id="parentPhone" required 
+                                       placeholder="VD: 0901234567" maxlength="15">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Email Phụ Huynh</label>
+                                <input type="email" id="parentEmail" 
+                                       placeholder="Nhập email (tùy chọn)">
+                            </div>
+                            <div class="form-group">
+                                <label>Trạng Thái <span class="required">*</span></label>
+                                <select id="studentStatus" required>
+                                    <option value="Học Thử">🆕 Học Thử</option>
+                                    <option value="Chờ Đăng Ký">⏳ Chờ Đăng Ký</option>
+                                    <option value="Đã Đăng Ký">✅ Đã Đăng Ký</option>
+                                    <option value="Hoàn Thành">🎓 Hoàn Thành</option>
+                                    <option value="Cancel">❌ Cancel</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Môn Học Quan Tâm <span class="required">*</span></label>
+                            <div class="checkbox-group" id="subjectCheckboxes">
+                                <!-- Checkboxes sẽ được render bằng JS -->
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Ghi Chú</label>
+                            <textarea id="studentNotes" rows="2" 
+                                      placeholder="Nhập ghi chú (tùy chọn)"></textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" id="saveStudentBtn">
+                                💾 Lưu Học Viên
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="toggleStudentForm()">
+                                ❌ Hủy
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Filter Bar -->
+                <div class="filter-bar">
+                    <button class="filter-btn active" data-filter="all" onclick="filterStudents('all')">
+                        📋 Tất cả <span class="count" id="countAll">0</span>
+                    </button>
+                    <button class="filter-btn" data-filter="Học Thử" onclick="filterStudents('Học Thử')">
+                        🆕 Học Thử <span class="count" id="countHocThu">0</span>
+                    </button>
+                    <button class="filter-btn" data-filter="Chờ Đăng Ký" onclick="filterStudents('Chờ Đăng Ký')">
+                        ⏳ Chờ ĐK <span class="count" id="countChoDangKy">0</span>
+                    </button>
+                    <button class="filter-btn" data-filter="Đã Đăng Ký" onclick="filterStudents('Đã Đăng Ký')">
+                        ✅ Đã ĐK <span class="count" id="countDaDangKy">0</span>
+                    </button>
+                    <button class="filter-btn" data-filter="Hoàn Thành" onclick="filterStudents('Hoàn Thành')">
+                        🎓 Hoàn Thành <span class="count" id="countHoanThanh">0</span>
+                    </button>
+                    <button class="filter-btn" data-filter="Cancel" onclick="filterStudents('Cancel')">
+                        ❌ Cancel <span class="count" id="countCancel">0</span>
+                    </button>
+                    <div class="search-box">
+                        <input type="text" id="searchStudent" 
+                               placeholder="Tìm kiếm học viên..." 
+                               oninput="searchStudents()">
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tên HV</th>
+                                <th>Tuổi</th>
+                                <th>Phụ Huynh</th>
+                                <th>SĐT</th>
+                                <th>Môn Học</th>
+                                <th>Trạng Thái</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTableBody">
+                            <!-- Data sẽ được render bằng JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-container" id="studentsPagination">
+                    <!-- Pagination sẽ được render bằng JS -->
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 TAB 3: 🎓 HỌC THỬ
+            ========================================== -->
+            <div id="trial" class="tab-content">
+                <div class="page-header">
+                    <h2>🎓 Danh Sách Học Thử & Chờ Đăng Ký</h2>
+                    <div class="page-actions">
+                        <button class="btn btn-info" onclick="exportTrialStudentsToExcel()">
+                            📤 Export Excel
+                        </button>
+                    </div>
+                </div>
+
+                <div class="filter-bar">
+                    <button class="filter-btn active" data-filter="all" onclick="filterTrialStudents('all')">
+                        📋 Tất cả <span class="count" id="trialCountAll">0</span>
+                    </button>
+                    <button class="filter-btn" data-filter="Học Thử" onclick="filterTrialStudents('Học Thử')">
+                        🆕 Học Thử <span class="count" id="trialCountHocThu">0</span>
+                    </button>
+                    <button class="filter-btn" data-filter="Chờ Đăng Ký" onclick="filterTrialStudents('Chờ Đăng Ký')">
+                        ⏳ Chờ Đăng Ký <span class="count" id="trialCountChoDangKy">0</span>
+                    </button>
+                    <div class="search-box">
+                        <input type="text" id="searchTrialStudent" 
+                               placeholder="Tìm kiếm..." 
+                               oninput="searchTrialStudents()">
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tên HV</th>
+                                <th>Tuổi</th>
+                                <th>Phụ Huynh</th>
+                                <th>SĐT</th>
+                                <th>Môn Học</th>
+                                <th>Trạng Thái</th>
+                                <th>Lịch Hẹn</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trialStudentsTableBody">
+                            <!-- Data sẽ được render bằng JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-container" id="trialPagination"></div>
+            </div>
+
+            <!-- ==========================================
+                 TAB 4: 📅 LỊCH HẸN
+            ========================================== -->
+            <div id="appointments" class="tab-content">
+                <div class="page-header">
+                    <h2>📅 Quản Lý Lịch Hẹn</h2>
+                    <div class="page-actions">
+                        <button class="btn btn-info" onclick="exportAppointmentsToExcel()">
+                            📤 Export Excel
+                        </button>
+                        <button class="btn btn-success" onclick="openNewAppointmentModal()">
+                            ➕ Thêm Lịch Hẹn
+                        </button>
+                    </div>
+                </div>
+
+                <div class="filter-bar">
+                    <button class="filter-btn active" onclick="filterAppointments('all')">
+                        📋 Tất cả
+                    </button>
+                    <button class="filter-btn" onclick="filterAppointments('upcoming')">
+                        ⏰ Sắp tới
+                    </button>
+                    <button class="filter-btn" onclick="filterAppointments('past')">
+                        ✅ Đã qua
+                    </button>
+                    <div class="search-box">
+                        <input type="text" id="searchAppointment" 
+                               placeholder="Tìm kiếm lịch hẹn..." 
+                               oninput="searchAppointments()">
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Học Viên</th>
+                                <th>Phụ Huynh</th>
+                                <th>SĐT</th>
+                                <th>Môn Học</th>
+                                <th>Ngày</th>
+                                <th>Giờ</th>
+                                <th>Trạng Thái</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="appointmentsTableBody"></tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-container" id="appointmentsPagination"></div>
+            </div>
+
+            <!-- ==========================================
+                 TAB 5: 📋 PHIẾU ĐĂNG KÝ
+            ========================================== -->
+            <div id="registrations" class="tab-content">
+                <div class="page-header">
+                    <h2>📋 Quản Lý Phiếu Đăng Ký</h2>
+                    <div class="page-actions">
+                        <button class="btn btn-info" onclick="exportRegistrationsToExcel()">
+                            📤 Export Excel
+                        </button>
+                        <button class="btn btn-success" onclick="openNewRegistrationModal()">
+                            ➕ Tạo Phiếu ĐK
+                        </button>
+                    </div>
+                </div>
+
+                <div class="filter-bar">
+                    <div class="search-box">
+                        <input type="text" id="searchRegistration" 
+                               placeholder="Tìm kiếm phiếu đăng ký..." 
+                               oninput="searchRegistrations()">
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Mã Phiếu</th>
+                                <th>Học Viên</th>
+                                <th>Môn Học / Gói / Học Phí</th>
+                                <th>Giảm Giá</th>
+                                <th>Thành Tiền</th>
+                                <th>Ngày ĐK</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="registrationsTableBody"></tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-container" id="registrationsPagination"></div>
+            </div>
+
+            <!-- ==========================================
+                 TAB 6: 🧾 BIÊN LAI
+            ========================================== -->
+            <div id="receipts" class="tab-content">
+                <div class="page-header">
+                    <h2>🧾 Quản Lý Biên Lai</h2>
+                    <div class="page-actions">
+                        <button class="btn btn-info" onclick="exportReceiptsToExcel()">
+                            📤 Export Excel
+                        </button>
+                        <button class="btn btn-success" onclick="openReceiptModal()">
+                            ➕ Tạo Biên Lai
+                        </button>
+                    </div>
+                </div>
+
+                <div class="filter-bar">
+                    <div class="search-box">
+                        <input type="text" id="searchReceipt" 
+                               placeholder="Tìm kiếm biên lai..." 
+                               oninput="searchReceipts()">
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Mã BL</th>
+                                <th>Loại</th>
+                                <th>Học Viên</th>
+                                <th>Nội Dung</th>
+                                <th>Số Tiền</th>
+                                <th>Ngày</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="receiptsTableBody"></tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-container" id="receiptsPagination"></div>
+            </div>
+
+            <!-- ==========================================
+                 TAB 7: 📚 DANH MỤC
+            ========================================== -->
+            <div id="categories" class="tab-content">
+                <div class="page-header">
+                    <h2>📚 Quản Lý Danh Mục</h2>
+                </div>
+
+                <div class="category-tabs">
+                    <button class="category-tab active" onclick="switchCategoryTab('subjects')">
+                        📖 Môn Học
+                    </button>
+                    <button class="category-tab" onclick="switchCategoryTab('packages')">
+                        📦 Gói Học Phí
+                    </button>
+                    <button class="category-tab" onclick="switchCategoryTab('promotions')">
+                        🎁 Khuyến Mãi
+                    </button>
+                </div>
+
+                <!-- Subjects Content -->
+                <div id="subjectsContent" class="category-content active">
+                    <div class="d-flex justify-between align-center mb-15">
+                        <h3 style="color: var(--gray-800);">📖 Danh Sách Môn Học</h3>
+                        <button class="btn btn-success btn-sm" onclick="openSubjectModal()">
+                            ➕ Thêm
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Icon</th>
+                                    <th>Tên Môn</th>
+                                    <th>Học Phí Mặc Định</th>
+                                    <th>Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="subjectsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Packages Content -->
+                <div id="packagesContent" class="category-content">
+                    <div class="d-flex justify-between align-center mb-15">
+                        <h3 style="color: var(--gray-800);">📦 Danh Sách Gói Học Phí</h3>
+                        <button class="btn btn-success btn-sm" onclick="openPackageModal()">
+                            ➕ Thêm
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tên Gói</th>
+                                    <th>Môn Học</th>
+                                    <th>Số Buổi</th>
+                                    <th>Học Phí</th>
+                                    <th>Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="packagesTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Promotions Content -->
+                <div id="promotionsContent" class="category-content">
+                    <div class="d-flex justify-between align-center mb-15">
+                        <h3 style="color: var(--gray-800);">🎁 Danh Sách Khuyến Mãi</h3>
+                        <button class="btn btn-success btn-sm" onclick="openPromotionModal()">
+                            ➕ Thêm
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tên KM</th>
+                                    <th>Loại</th>
+                                    <th>Giá Trị</th>
+                                    <th>Thời Hạn</th>
+                                    <th>Trạng Thái</th>
+                                    <th>Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="promotionsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 TAB 8: 📤 XUẤT DATA
+            ========================================== -->
+            <div id="export" class="tab-content">
+                <div class="page-header">
+                    <h2>📤 Xuất Dữ Liệu & Sao Lưu</h2>
+                </div>
+
+                <div class="settings-group">
+                    <h3>📊 Xuất File Excel</h3>
+                    <div class="d-flex gap-10 flex-wrap">
+                        <button class="btn btn-success" onclick="exportAllToExcel()">
+                            📊 Xuất Tất Cả
+                        </button>
+                        <button class="btn btn-info" onclick="exportStudentsToExcel()">
+                            👩‍🎓 Học Viên
+                        </button>
+                        <button class="btn btn-warning" onclick="exportAppointmentsToExcel()">
+                            📅 Lịch Hẹn
+                        </button>
+                        <button class="btn btn-primary" onclick="exportRegistrationsToExcel()">
+                            📋 Phiếu ĐK
+                        </button>
+                        <button class="btn btn-secondary" onclick="exportReceiptsToExcel()">
+                            🧾 Biên Lai
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3>💾 Sao Lưu & Khôi Phục</h3>
+                    <div class="d-flex gap-10 flex-wrap">
+                        <button class="btn btn-success" onclick="exportBackupJSON()">
+                            💾 Tải Backup JSON
+                        </button>
+                        <label class="btn btn-info" style="cursor: pointer;">
+                            📁 Khôi Phục JSON
+                            <input type="file" accept=".json" onchange="restoreFromJSON(event)" style="display: none;">
+                        </label>
+                        <label class="btn btn-warning" style="cursor: pointer;">
+                            📥 Import Excel
+                            <input type="file" accept=".xlsx,.xls" onchange="importFromExcel(event)" style="display: none;">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3>📜 Lịch Sử Backup Tự Động</h3>
+                    <div id="backupHistoryList">
+                        <!-- Backup history sẽ được render bằng JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 TAB 9: ⚙️ CÀI ĐẶT
+            ========================================== -->
+            <div id="settings" class="tab-content">
+                <div class="page-header">
+                    <h2>⚙️ Cài Đặt Hệ Thống</h2>
+                </div>
+
+                <div class="settings-group">
+                    <h3>🏢 Thông Tin Trung Tâm</h3>
+                    <form id="centerInfoForm" onsubmit="saveCenterInfo(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Tên Trung Tâm <span class="required">*</span></label>
+                                <input type="text" id="centerName" placeholder="VD: Trung Tâm ABC">
+                            </div>
+                            <div class="form-group">
+                                <label>Số Điện Thoại <span class="required">*</span></label>
+                                <input type="tel" id="centerPhone" placeholder="VD: 0912345678">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Địa Chỉ <span class="required">*</span></label>
+                            <input type="text" id="centerAddress" placeholder="VD: 123 Đường ABC">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="centerEmail" placeholder="VD: contact@abc.edu.vn">
+                            </div>
+                            <div class="form-group">
+                                <label>Website</label>
+                                <input type="url" id="centerWebsite" placeholder="VD: https://abc.edu.vn">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Logo</label>
+                            <input type="file" id="centerLogo" accept="image/*" onchange="previewLogo(event)">
+                            <div class="logo-preview" id="logoPreview">
+                                <span class="text-muted">Logo</span>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">💾 Lưu Thông Tin</button>
+                    </form>
+                </div>
+
+                <div class="settings-group">
+                    <h3>💳 Thông Tin Ngân Hàng</h3>
+                    <form id="bankInfoForm" onsubmit="saveBankInfo(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Tên Ngân Hàng <span class="required">*</span></label>
+                                <input type="text" id="bankName" placeholder="VD: Vietcombank">
+                            </div>
+                            <div class="form-group">
+                                <label>Số Tài Khoản <span class="required">*</span></label>
+                                <input type="text" id="bankAccount" placeholder="VD: 1234567890">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Chủ Tài Khoản <span class="required">*</span></label>
+                                <input type="text" id="bankAccountName" placeholder="VD: NGUYEN VAN A">
+                            </div>
+                            <div class="form-group">
+                                <label>Chi Nhánh</label>
+                                <input type="text" id="bankBranch" placeholder="VD: Chi nhánh Tân Bình">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">💾 Lưu Thông Tin</button>
+                    </form>
+                    <div class="mt-15">
+                        <h4 style="font-size: 0.95em; margin-bottom: 10px;">QR Chuyển Khoản:</h4>
+                        <div id="bankQRCode"></div>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3>🔄 Sao Lưu Tự Động</h3>
+                    <div class="d-flex align-center gap-15">
+                        <label class="d-flex align-center gap-10" style="cursor: pointer;">
+                            <input type="checkbox" id="autoBackupToggle" onchange="toggleAutoBackup()">
+                            <span>Bật sao lưu tự động</span>
+                        </label>
+                        <span id="autoBackupStatus" class="text-muted"></span>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3>🗑️ Xóa Dữ Liệu</h3>
+                    <p class="text-muted mb-15" style="font-size: 0.9em;">
+                        ⚠️ Hành động này không thể hoàn tác! Hãy backup trước khi xóa.
+                    </p>
+                    <button class="btn btn-danger" onclick="clearAllData()">
+                        🗑️ Xóa Toàn Bộ Dữ Liệu
+                    </button>
+                </div>
+            </div>
+
+        </div><!-- End .content -->
+    </div><!-- End .container -->
+
+    <!-- ==========================================
+         🔔 MODALS
+    ========================================== -->
+    
+    <!-- Quick View Modal -->
+    <div id="quickViewModal" class="modal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2>👁️ Thông Tin Chi Tiết</h2>
+                <button class="modal-close" onclick="closeModal('quickViewModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="quickViewContent"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('quickViewModal')">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointment Modal -->
+    <div id="appointmentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="appointmentModalTitle">📅 Đặt Lịch Hẹn</h2>
+                <button class="modal-close" onclick="closeModal('appointmentModal')">&times;</button>
+            </div>
+            <form id="appointmentForm" onsubmit="saveAppointment(event)">
+                <input type="hidden" id="appointmentStudentId">
+                <input type="hidden" id="editAppointmentId">
+                
+                <div class="form-group">
+                    <label>Học Viên <span class="required">*</span></label>
+                    <div class="searchable-select" id="appointmentStudentSelect">
+                        <input type="text" class="searchable-select-input" id="appointmentStudentInput" 
+                               placeholder="-- Chọn hoặc tìm học viên --" readonly 
+                               onclick="toggleStudentDropdown()">
+                        <div class="searchable-select-dropdown" id="appointmentStudentDropdown">
+                            <div class="searchable-select-search">
+                                <input type="text" id="appointmentStudentSearch" 
+                                       placeholder="Tìm kiếm..." 
+                                       oninput="filterStudentDropdown()">
+                            </div>
+                            <div id="appointmentStudentOptions"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Môn Học <span class="required">*</span></label>
+                    <select id="appointmentSubject" required>
+                        <option value="">-- Chọn môn học --</option>
+                    </select>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Ngày Hẹn <span class="required">*</span></label>
+                        <input type="date" id="appointmentDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Giờ Hẹn <span class="required">*</span></label>
+                        <input type="time" id="appointmentTime" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Ghi Chú</label>
+                    <textarea id="appointmentNotes" rows="2" placeholder="Ghi chú"></textarea>
+                </div>
+                
+                <div id="appointmentConflictWarning" class="hidden" 
+                     style="background: #fff3cd; padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #ffc107; font-size: 0.9em;">
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('appointmentModal')">Hủy</button>
+                    <button type="submit" class="btn btn-success">💾 Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Registration Modal -->
+    <div id="registrationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📋 Tạo Phiếu Đăng Ký</h2>
+                <button class="modal-close" onclick="closeModal('registrationModal')">&times;</button>
+            </div>
+            <form id="registrationForm" onsubmit="saveRegistration(event)">
+                <input type="hidden" id="regStudentId">
+                
+                <div class="form-group">
+                    <label>Học Viên <span class="required">*</span></label>
+                    <div class="searchable-select" id="regStudentSelect">
+                        <input type="text" class="searchable-select-input" id="regStudentInput" 
+                               placeholder="-- Chọn hoặc tìm học viên --" readonly 
+                               onclick="toggleRegStudentDropdown()">
+                        <div class="searchable-select-dropdown" id="regStudentDropdown">
+                            <div class="searchable-select-search">
+                                <input type="text" id="regStudentSearch" 
+                                       placeholder="Tìm kiếm..." 
+                                       oninput="filterRegStudentDropdown()">
+                            </div>
+                            <div id="regStudentOptions"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Môn Học <span class="required">*</span></label>
+                        <select id="regSubject" required onchange="loadPackagesForSubject()">
+                            <option value="">-- Chọn môn --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Gói Học Phí</label>
+                        <select id="regPackage" onchange="applyPackageFee()">
+                            <option value="">-- Nhập thủ công --</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Học Phí (VNĐ) <span class="required">*</span></label>
+                    <input type="text" id="regTuitionFee" required 
+                           placeholder="VD: 2,000,000" 
+                           oninput="formatCurrencyInput(this); calculateFinalAmount()">
+                </div>
+                
+                <div class="form-group">
+                    <label>Khuyến Mãi</label>
+                    <div id="regPromotionList" class="checkbox-group"></div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Giảm Giá</label>
+                        <input type="text" id="regDiscountAmount" readonly 
+                               style="background: #ffebee; color: #c62828; font-weight: 600;">
+                    </div>
+                    <div class="form-group">
+                        <label>Thành Tiền</label>
+                        <input type="text" id="regFinalAmount" readonly 
+                               style="background: #e8f5e9; color: #388e3c; font-weight: 600;">
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('registrationModal')">Hủy</button>
+                    <button type="submit" class="btn btn-success">✅ Tạo Phiếu ĐK</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Registration Modal -->
+    <div id="viewRegistrationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📋 Chi Tiết Phiếu Đăng Ký</h2>
+                <button class="modal-close" onclick="closeModal('viewRegistrationModal')">&times;</button>
+            </div>
+            <div class="modal-body print-area" id="registrationPreviewContent"></div>
+            <div class="modal-footer">
+                <button class="btn btn-info" onclick="printRegistration()">🖨️ In</button>
+                <button class="btn btn-primary" onclick="downloadRegistrationPDF()">📄 Tải PDF</button>
+                <button class="btn btn-secondary" onclick="closeModal('viewRegistrationModal')">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div id="receiptModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🧾 Tạo Biên Lai</h2>
+                <button class="modal-close" onclick="closeModal('receiptModal')">&times;</button>
+            </div>
+            <form id="receiptForm" onsubmit="saveReceipt(event)">
+                <input type="hidden" id="editReceiptId">
+                
+                <div class="form-group">
+                    <label>Loại <span class="required">*</span></label>
+                    <select id="receiptType" required>
+                        <option value="">-- Chọn loại --</option>
+                        <option value="Biên Lai Điện Tử">💳 Biên Lai Điện Tử</option>
+                        <option value="Phiếu Thu">💵 Phiếu Thu</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Học Viên <span class="required">*</span> (chỉ HV "Đã Đăng Ký")</label>
+                    <select id="receiptStudentId" required onchange="fillReceiptStudentInfo()">
+                        <option value="">-- Chọn học viên --</option>
+                    </select>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Phụ Huynh</label>
+                        <input type="text" id="receiptParentName" readonly style="background: #f8f9fa;">
+                    </div>
+                    <div class="form-group">
+                        <label>SĐT</label>
+                        <input type="text" id="receiptParentPhone" readonly style="background: #f8f9fa;">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Liên kết Phiếu Đăng Ký</label>
+                    <select id="receiptRegistrationSelect" onchange="fillFromRegistration()">
+                        <option value="">-- Chọn phiếu ĐK để lấy số tiền --</option>
+                    </select>
+                    <input type="hidden" id="receiptRegistrationId">
+                    <p class="help-text">Chọn phiếu ĐK để tự động điền nội dung và số tiền</p>
+                </div>
+
+                <div class="form-group">
+                    <label>Nội Dung <span class="required">*</span></label>
+                    <input type="text" id="receiptDescription" required 
+                           placeholder="VD: Học phí tháng 1">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Số Tiền (VNĐ) <span class="required">*</span></label>
+                        <input type="text" id="receiptAmount" required 
+                               placeholder="VD: 2,000,000" 
+                               oninput="formatCurrencyInput(this)">
+                    </div>
+                    <div class="form-group">
+                        <label>Ngày <span class="required">*</span></label>
+                        <input type="date" id="receiptDate" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Ghi Chú</label>
+                    <textarea id="receiptNotes" rows="2" placeholder="Ghi chú"></textarea>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('receiptModal')">Hủy</button>
+                    <button type="submit" class="btn btn-success">💾 Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Receipt Modal -->
+    <div id="viewReceiptModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🧾 Xem Biên Lai</h2>
+                <button class="modal-close" onclick="closeModal('viewReceiptModal')">&times;</button>
+            </div>
+            <div class="modal-body print-area" id="receiptPreviewContent"></div>
+            <div class="modal-footer">
+                <button class="btn btn-info" onclick="printReceipt()">🖨️ In</button>
+                <button class="btn btn-primary" onclick="downloadReceiptPDF()">📄 Tải PDF</button>
+                <button class="btn btn-secondary" onclick="closeModal('viewReceiptModal')">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subject Modal -->
+    <div id="subjectModal" class="modal">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h2 id="subjectModalTitle">📖 Thêm Môn Học</h2>
+                <button class="modal-close" onclick="closeModal('subjectModal')">&times;</button>
+            </div>
+            <form id="subjectForm" onsubmit="saveSubject(event)">
+                <input type="hidden" id="editSubjectId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Icon <span class="required">*</span></label>
+                        <input type="text" id="subjectIcon" required placeholder="VD: ♟️">
+                    </div>
+                    <div class="form-group">
+                        <label>Tên Môn <span class="required">*</span></label>
+                        <input type="text" id="subjectName" required placeholder="VD: Cờ Vua">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Học Phí Mặc Định <span class="required">*</span></label>
+                    <input type="text" id="subjectDefaultFee" required 
+                           placeholder="VD: 2,000,000" 
+                           oninput="formatCurrencyInput(this)">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('subjectModal')">Hủy</button>
+                    <button type="submit" class="btn btn-success">💾 Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Package Modal -->
+    <div id="packageModal" class="modal">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h2 id="packageModalTitle">📦 Thêm Gói Học Phí</h2>
+                <button class="modal-close" onclick="closeModal('packageModal')">&times;</button>
+            </div>
+            <form id="packageForm" onsubmit="savePackage(event)">
+                <input type="hidden" id="editPackageId">
+                <div class="form-group">
+                    <label>Tên Gói <span class="required">*</span></label>
+                    <input type="text" id="packageName" required placeholder="VD: Gói Cơ Bản">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Môn Học <span class="required">*</span></label>
+                        <select id="packageSubject" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Số Buổi <span class="required">*</span></label>
+                        <input type="number" id="packageSessions" required min="1" placeholder="VD: 8">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Học Phí <span class="required">*</span></label>
+                    <input type="text" id="packageFee" required 
+                           placeholder="VD: 1,600,000" 
+                           oninput="formatCurrencyInput(this)">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('packageModal')">Hủy</button>
+                    <button type="submit" class="btn btn-success">💾 Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Promotion Modal -->
+    <div id="promotionModal" class="modal">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h2 id="promotionModalTitle">🎁 Thêm Khuyến Mãi</h2>
+                <button class="modal-close" onclick="closeModal('promotionModal')">&times;</button>
+            </div>
+            <form id="promotionForm" onsubmit="savePromotion(event)">
+                <input type="hidden" id="editPromotionId">
+                <div class="form-group">
+                    <label>Tên KM <span class="required">*</span></label>
+                    <input type="text" id="promotionName" required placeholder="VD: KM Khai Trương">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Loại <span class="required">*</span></label>
+                        <select id="promotionType" required>
+                            <option value="percent">Giảm %</option>
+                            <option value="fixed">Giảm VNĐ</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Giá Trị <span class="required">*</span></label>
+                        <input type="number" id="promotionValue" required min="0" placeholder="VD: 10">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Từ Ngày <span class="required">*</span></label>
+                        <input type="date" id="promotionStartDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Đến Ngày <span class="required">*</span></label>
+                        <input type="date" id="promotionEndDate" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('promotionModal')">Hủy</button>
+                    <button type="submit" class="btn btn-success">💾 Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification">
+        <span id="notificationIcon"></span>
+        <span id="notificationMessage"></span>
+        <button class="notification-close" onclick="hideNotification()">&times;</button>
+    </div>
+
+    <!-- ==========================================
+         📜 JAVASCRIPT FILES
+         Thứ tự load quan trọng!
+    ========================================== -->
+    <!-- Core -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/ui.js"></script>
+    
+    <!-- Features -->
+    <script src="js/dashboard.js"></script>
+    <script src="js/students.js"></script>
+    <script src="js/trial.js"></script>
+    <script src="js/appointments.js"></script>
+    <script src="js/registrations.js"></script>
+    <script src="js/receipts.js"></script>
+    <script src="js/categories.js"></script>
+    <script src="js/export.js"></script>
+    <script src="js/settings.js"></script>
+    
+    <!-- Main App -->
+    <script src="js/app.js"></script>
+</body>
+</html>
