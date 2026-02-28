@@ -1,2570 +1,453 @@
 <!DOCTYPE html>
-<html lang="vi"><head>
+<html lang="vi">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Quản Lý Trung Tâm - V4.0</title>
-
-    <!-- ========== THƯ VIỆN BÊN NGOÀI ========== -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- Chart.js v4 - Lightweight -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <!-- CryptoJS - Thư viện mã hóa -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
-
-    
-
-    <!-- CSS Files -->
-    <link rel="stylesheet" href="css/styles.css">
+    <meta name="description" content="SKILLUP CENTER - Trung tâm Phát triển Giáo dục Toàn diện cho Trẻ em. Đào tạo kỹ năng sống, tư duy sáng tạo, ngoại ngữ cho trẻ từ 3-15 tuổi.">
+    <meta name="keywords" content="giáo dục trẻ em, kỹ năng sống, tiếng Anh trẻ em, STEM, skillup center">
+    <title>SKILLUP CENTER - Trung tâm Giáo dục Toàn diện cho Trẻ</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-
 <body>
-    <!-- ============================================================
-         🔐 MÀN HÌNH ĐĂNG NHẬP
-         ============================================================ -->
-    <div class="login-screen" id="loginScreen">
-        <div class="login-container">
-            <div class="login-logo">
-                <div class="logo-icon">📚</div>
-                <h1>HỆ THỐNG QUẢN LÝ</h1>
-                <p>Trung Tâm Dạy Học</p>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Đang tải dữ liệu...</p>
+    </div>
+
+    <!-- Header & Navigation -->
+    <header class="header" id="header">
+        <nav class="navbar container">
+            <div class="nav-brand">
+                <i class="fas fa-graduation-cap"></i>
+                <span>SKILLUP CENTER</span>
             </div>
+            <button class="nav-toggle" id="navToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="#home" class="nav-link active">Trang chủ</a></li>
+                <li><a href="#about" class="nav-link">Giới thiệu</a></li>
+                <li><a href="#courses" class="nav-link">Khóa học</a></li>
+                <li><a href="#teachers" class="nav-link">Giáo viên</a></li>
+                <li><a href="#blog" class="nav-link">Blog</a></li>
+                <li><a href="#gallery" class="nav-link">Thư viện</a></li>
+                <li><a href="#contact" class="nav-link">Liên hệ</a></li>
+                <li><a href="#" class="nav-link btn-login" id="btnLogin">Đăng nhập</a></li>
+            </ul>
+        </nav>
+    </header>
 
-            <div class="login-error" id="loginError">
-                <span>⚠️</span>
-                <span id="loginErrorText">Sai tên đăng nhập hoặc mật khẩu</span>
-            </div>
-
-            <form class="login-form" id="loginForm" onsubmit="handleLogin(event)">
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeLogin">&times;</span>
+            <h2>Đăng nhập Admin</h2>
+            <form id="loginForm">
                 <div class="form-group">
-                    <label>Tên đăng nhập</label>
-                    <div class="input-wrapper">
-                        <span class="input-icon">👤</span>
-                        <input type="text" id="loginUsername" placeholder="Nhập tên đăng nhập" required="" autocomplete="username">
-                    </div>
+                    <label for="username">Tên đăng nhập</label>
+                    <input type="text" id="username" required>
                 </div>
-
                 <div class="form-group">
-                    <label>Mật khẩu</label>
-                    <div class="input-wrapper">
-                        <span class="input-icon">🔒</span>
-                        <input type="password" id="loginPassword" placeholder="Nhập mật khẩu" required="" autocomplete="current-password">
-                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility()">👁️</button>
-                    </div>
+                    <label for="password">Mật khẩu</label>
+                    <input type="password" id="password" required>
                 </div>
-
-                <div class="form-options">
-                    <label class="remember-me">
-                        <input type="checkbox" id="rememberMe">
-                        <span>Ghi nhớ đăng nhập</span>
-                    </label>
-                </div>
-
-                <button type="submit" class="btn-login" id="btnLogin">
-                    <span>Đăng nhập</span>
-                </button>
+                <button type="submit" class="btn btn-primary">Đăng nhập</button>
             </form>
-
-            <div class="login-footer">
-                <p>Version 4.0 - VSH📨2026</p>
-            </div>
+            <p class="login-note">Demo: admin / admin123</p>
         </div>
     </div>
 
-    <!-- ============================================================
-         📐 ỨNG DỤNG CHÍNH
-         ============================================================ -->
-    <div class="app-container" id="appContainer">
-
-        <!-- ==================== SIDEBAR ==================== -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-logo">
-                <div class="logo-icon">📚</div>
-                <span class="logo-text">Quản Lý Trung Tâm</span>
-            </div>
-
-            <nav class="sidebar-nav" id="sidebarNav">
-                <!-- Menu sẽ được render bằng JS dựa trên quyền -->
-            </nav>
-
-            <div class="sidebar-footer">
-                <p class="version">VSH📨2026</p>
-            </div>
-        </aside>
-
-        <!-- ==================== MAIN WRAPPER ==================== -->
-        <div class="main-wrapper">
-
-            <!-- Header -->
-            <header class="main-header">
-                <div class="header-left">
-                    <button class="toggle-sidebar-btn" onclick="toggleSidebar()" title="Ẩn/Hiện menu">☰</button>
-                    <h1 class="page-title" id="pageTitle">📊 Tổng quan</h1>
-                </div>
-                <div class="header-right">
-                    <button class="header-btn" onclick="createManualBackup()" title="Backup">💾</button>
-                    <button class="header-btn" title="Thông báo">🔔</button>
-
-                    <!-- User Dropdown -->
-                    <div class="user-dropdown">
-                        <div class="user-info" onclick="toggleUserMenu()">
-                            <div class="user-avatar" id="userAvatar">A</div>
-                            <span class="user-name" id="userName">Admin</span>
-                            <span class="user-role" id="userRoleBadge">Admin</span>
-                        </div>
-                        <div class="user-menu" id="userMenu">
-                            <div class="user-menu-header">
-                                <div class="name" id="userMenuName">Admin</div>
-                                <div class="email" id="userMenuRole">Quản trị viên</div>
-                            </div>
-                            <div class="user-menu-item" onclick="openChangePasswordModal()">
-                                <span>🔑</span>
-                                <span>Đổi mật khẩu</span>
-                            </div>
-                            <div class="user-menu-item" onclick="openProfileModal()">
-                                <span>👤</span>
-                                <span>Thông tin cá nhân</span>
-                            </div>
-                            <div class="user-menu-divider"></div>
-                            <div class="user-menu-item danger" onclick="handleLogout()">
-                                <span>🚪</span>
-                                <span>Đăng xuất</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <!-- Main Content -->
-            <main class="main-content">
-
-                <!-- ==================== TAB: TỔNG QUAN ==================== -->
-                <div id="dashboard" class="tab-content active">
-                    <div class="page-header">
-                        <h2>📊 Tổng quan hệ thống</h2>
-                    </div>
-                    <div class="stats-grid" id="dashboardStats"></div>
-                    <div class="d-flex gap-20 flex-wrap">
-                        <div class="flex-1" style="min-width: 300px;">
-                            <div class="chart-container">
-                                <h3 class="mb-15">📈 Doanh thu 6 tháng gần nhất</h3>
-                                <div class="chart-bars" id="revenueChart"></div>
-                            </div>
-                        </div>
-                        <div style="min-width: 300px; max-width: 400px;">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h3>📅 Lịch hẹn sắp tới</h3>
-                                </div>
-                                <div class="card-body" id="upcomingAppointments"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ==================== TAB: DANH SÁCH HỌC VIÊN ==================== -->
-                <div id="students" class="tab-content">
-                    <div class="page-header">
-                        <h2>👩‍🎓 Danh sách Học viên</h2>
-                        <div class="page-actions" id="studentsActions">
-                            <button class="btn btn-info" onclick="exportStudentsToExcel()">📤 Export Excel</button>
-                            <button class="btn btn-success" onclick="toggleStudentForm()">➕ Thêm học viên</button>
-                        </div>
-                    </div>
-
-                    <div class="form-section" id="studentFormSection">
-                        <div class="form-section-header">
-                            <h3 id="studentFormTitle">➕ Thêm Học Viên Mới</h3>
-                            <button class="btn btn-sm btn-secondary" onclick="toggleStudentForm()">✕ Đóng</button>
-                        </div>
-                        <form id="studentForm" onsubmit="saveStudent(event)">
-                            <input type="hidden" id="editStudentId" value="">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Tên Học Viên *</label>
-                                    <input type="text" id="studentName" required="" placeholder="Nhập tên học viên">
-                                </div>
-                                <div class="form-group">
-                                    <label>Tuổi *</label>
-                                    <input type="number" id="studentAge" required="" min="3" max="100" placeholder="Nhập tuổi">
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Tên Phụ Huynh *</label>
-                                    <input type="text" id="parentName" required="" placeholder="Nhập tên phụ huynh">
-                                </div>
-                                <div class="form-group">
-                                    <label>Số Điện Thoại *</label>
-                                    <input type="tel" id="parentPhone" required="" placeholder="Nhập số điện thoại">
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Email Phụ Huynh</label>
-                                    <input type="email" id="parentEmail" placeholder="Nhập email (tùy chọn)">
-                                </div>
-                                <div class="form-group">
-                                    <label>Trạng Thái *</label>
-                                    <select id="studentStatus" required="">
-                                        <option value="Học Thử">🆕 Học Thử</option>
-                                        <option value="Chờ Đăng Ký">⏳ Chờ Đăng Ký</option>
-                                        <option value="Đã Đăng Ký">✅ Đã Đăng Ký</option>
-                                        <option value="Hoàn Thành">🎓 Hoàn Thành</option>
-                                        <option value="Cancel">❌ Cancel</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label>Môn Học Quan Tâm *</label>
-                                <div class="checkbox-group" id="subjectCheckboxes"></div>
-                            </div>
-                            <div class="form-group">
-                                <label>Ghi Chú</label>
-                                <textarea id="studentNotes" rows="2" placeholder="Nhập ghi chú (tùy chọn)"></textarea>
-                            </div>
-                            <div class="form-actions">
-                                <button type="submit" class="btn btn-primary" id="saveStudentBtn">💾 Lưu Học
-                                    Viên</button>
-                                <button type="button" class="btn btn-secondary" onclick="toggleStudentForm()">❌
-                                    Hủy</button>
-                            </div>
-                        </form>
-                    </div>
-
-                    <div class="filter-bar">
-                        <button class="filter-btn active" onclick="filterStudents('all')" data-filter="all">📋 Tất cả
-                            <span class="count" id="countAll">0</span></button>
-                        <button class="filter-btn" onclick="filterStudents('Học Thử')" data-filter="Học Thử">🆕 Học Thử
-                            <span class="count" id="countHocThu">0</span></button>
-                        <button class="filter-btn" onclick="filterStudents('Chờ Đăng Ký')" data-filter="Chờ Đăng Ký">⏳
-                            Chờ ĐK <span class="count" id="countChoDangKy">0</span></button>
-                        <button class="filter-btn" onclick="filterStudents('Đã Đăng Ký')" data-filter="Đã Đăng Ký">✅ Đã
-                            ĐK <span class="count" id="countDaDangKy">0</span></button>
-                        <button class="filter-btn" onclick="filterStudents('Hoàn Thành')" data-filter="Hoàn Thành">🎓
-                            Hoàn Thành <span class="count" id="countHoanThanh">0</span></button>
-                        <button class="filter-btn" onclick="filterStudents('Cancel')" data-filter="Cancel">❌ Cancel
-                            <span class="count" id="countCancel">0</span></button>
-                        <div class="search-box">
-                            <input type="text" id="searchStudent" placeholder="Tìm kiếm học viên..." oninput="searchStudents()">
-                        </div>
-                    </div>
-
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Tên HV</th>
-                                    <th>Tuổi</th>
-                                    <th>Phụ Huynh</th>
-                                    <th>SĐT</th>
-                                    <th>Môn Học</th>
-                                    <th>Trạng Thái</th>
-                                    <th>Thao Tác</th>
-                                </tr>
-                            </thead>
-                            <tbody id="studentsTableBody"></tbody>
-                        </table>
-                    </div>
-                    <div class="pagination-container" id="studentsPagination"></div>
-                </div>
-
-                <!-- ==================== TAB: HỌC THỬ ==================== -->
-                <div id="trial" class="tab-content">
-                    <div class="page-header">
-                        <h2>🎓 Danh sách Học thử &amp; Chờ đăng ký</h2>
-                        <div class="page-actions"><button class="btn btn-info" onclick="exportTrialStudentsToExcel()">📤
-                                Export Excel</button></div>
-                    </div>
-                    <div class="filter-bar">
-                        <button class="filter-btn active" onclick="filterTrialStudents('all')" data-filter="all">📋 Tất
-                            cả <span class="count" id="trialCountAll">0</span></button>
-                        <button class="filter-btn" onclick="filterTrialStudents('Học Thử')" data-filter="Học Thử">🆕 Học
-                            Thử <span class="count" id="trialCountHocThu">0</span></button>
-                        <button class="filter-btn" onclick="filterTrialStudents('Chờ Đăng Ký')" data-filter="Chờ Đăng Ký">⏳ Chờ ĐK <span class="count" id="trialCountChoDangKy">0</span></button>
-                        <div class="search-box"><input type="text" id="searchTrialStudent" placeholder="Tìm kiếm..." oninput="searchTrialStudents()"></div>
-                    </div>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Tên HV</th>
-                                    <th>Tuổi</th>
-                                    <th>Phụ Huynh</th>
-                                    <th>SĐT</th>
-                                    <th>Môn Học</th>
-                                    <th>Trạng Thái</th>
-                                    <th>Lịch Hẹn</th>
-                                    <th>Thao Tác</th>
-                                </tr>
-                            </thead>
-                            <tbody id="trialStudentsTableBody"></tbody>
-                        </table>
-                    </div>
-                    <div class="pagination-container" id="trialPagination"></div>
-                </div>
-
-                <!-- ==================== TAB: LỊCH HẸN ==================== -->
-                <div id="appointments" class="tab-content">
-                    <div class="page-header">
-                        <h2>📅 Quản lý Lịch hẹn</h2>
-                        <div class="page-actions" id="appointmentsActions">
-                            <button class="btn btn-info" onclick="exportAppointmentsToExcel()">📤 Export Excel</button>
-                            <button class="btn btn-success" onclick="openNewAppointmentModal()">➕ Thêm lịch hẹn</button>
-                        </div>
-                    </div>
-                    <div class="filter-bar">
-                        <button class="filter-btn active" onclick="filterAppointments('all')">📋 Tất cả</button>
-                        <button class="filter-btn" onclick="filterAppointments('upcoming')">⏰ Sắp tới</button>
-                        <button class="filter-btn" onclick="filterAppointments('past')">✅ Đã qua</button>
-                        <div class="search-box"><input type="text" id="searchAppointment" placeholder="Tìm kiếm lịch hẹn..." oninput="searchAppointments()"></div>
-                    </div>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Học Viên</th>
-                                    <th>Phụ Huynh</th>
-                                    <th>SĐT</th>
-                                    <th>Môn Học</th>
-                                    <th>Ngày</th>
-                                    <th>Giờ</th>
-                                    <th>Trạng Thái</th>
-                                    <th>Thao Tác</th>
-                                </tr>
-                            </thead>
-                            <tbody id="appointmentsTableBody"></tbody>
-                        </table>
-                    </div>
-                    <div class="pagination-container" id="appointmentsPagination"></div>
-                </div>
-
-                <!-- ==================== TAB: PHIẾU ĐĂNG KÝ ==================== -->
-                <div id="registrations" class="tab-content">
-                    <div class="page-header">
-                        <h2>📋 Quản lý Phiếu đăng ký</h2>
-                        <div class="page-actions" id="registrationsActions">
-                            <button class="btn btn-info" onclick="exportRegistrationsToExcel()">📤 Export Excel</button>
-                            <button class="btn btn-success" onclick="openNewRegistrationModal()">➕ Tạo phiếu ĐK</button>
-                        </div>
-                    </div>
-                    <div class="filter-bar">
-                        <div class="search-box"><input type="text" id="searchRegistration" placeholder="Tìm kiếm phiếu đăng ký..." oninput="searchRegistrations()"></div>
-                    </div>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Mã Phiếu</th>
-                                    <th>Học Viên</th>
-                                    <th>Môn Học / Gói</th>
-                                    <th>Giảm Giá</th>
-                                    <th>Thành Tiền</th>
-                                    <th>Ngày ĐK</th>
-                                    <th>Thao Tác</th>
-                                </tr>
-                            </thead>
-                            <tbody id="registrationsTableBody"></tbody>
-                        </table>
-                    </div>
-                    <div class="pagination-container" id="registrationsPagination"></div>
-                </div>
-
-                <!-- ==================== TAB: BIÊN LAI ==================== -->
-                <div id="receipts" class="tab-content">
-                    <div class="page-header">
-                        <h2>🧾 Quản lý Biên lai</h2>
-                        <div class="page-actions" id="receiptsActions">
-                            <button class="btn btn-info" onclick="exportReceiptsToExcel()">📤 Export Excel</button>
-                            <button class="btn btn-success" onclick="openReceiptModal()">➕ Tạo biên lai</button>
-                        </div>
-                    </div>
-                    <!-- Tổng hợp biên lai -->
-                    <div class="stats-grid mb-20" id="receiptSummaryStats">
-                        <div class="stat-card">
-                            <div class="stat-icon green">💰</div>
-                            <div class="stat-info">
-                                <h3 id="receiptTotalIncome">0</h3>
-                                <p>Tổng thu</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon red">💸</div>
-                            <div class="stat-info">
-                                <h3 id="receiptTotalExpense">0</h3>
-                                <p>Tổng chi (hoàn tiền)</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon blue">📊</div>
-                            <div class="stat-info">
-                                <h3 id="receiptBalance">0</h3>
-                                <p>Số dư</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon teal">🧾</div>
-                            <div class="stat-info">
-                                <h3 id="receiptTotalCount">0</h3>
-                                <p>Tổng biên lai</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Bộ lọc thời gian -->
-                    <div class="card mb-20">
-                        <div class="card-body" style="padding: 15px;">
-                            <div class="d-flex gap-15 flex-wrap align-center">
-                                <div class="form-group" style="margin-bottom: 0; min-width: 150px;">
-                                    <label style="font-size: 12px; margin-bottom: 4px;">Khoảng thời gian</label>
-                                    <select id="receiptPeriodFilter" onchange="onReceiptPeriodChange()">
-                                        <option value="all">Tất cả</option>
-                                        <option value="thisMonth" selected="">Tháng này</option>
-                                        <option value="lastMonth">Tháng trước</option>
-                                        <option value="thisQuarter">Quý này</option>
-                                        <option value="thisYear">Năm nay</option>
-                                        <option value="custom">Tùy chọn</option>
-                                    </select>
-                                </div>
-                                <div class="form-group" style="margin-bottom: 0;" id="receiptFromDateGroup">
-                                    <label style="font-size: 12px; margin-bottom: 4px;">Từ ngày</label>
-                                    <input type="date" id="receiptFilterFromDate" onchange="filterReceiptsByDate()">
-                                </div>
-                                <div class="form-group" style="margin-bottom: 0;" id="receiptToDateGroup">
-                                    <label style="font-size: 12px; margin-bottom: 4px;">Đến ngày</label>
-                                    <input type="date" id="receiptFilterToDate" onchange="filterReceiptsByDate()">
-                                </div>
-                                <div class="form-group" style="margin-bottom: 0;">
-                                    <label style="font-size: 12px; margin-bottom: 4px;">Loại</label>
-                                    <select id="receiptTypeFilter" onchange="filterReceiptsByDate()">
-                                        <option value="all">Tất cả loại</option>
-                                        <option value="thu">Chỉ Thu</option>
-                                        <option value="chi">Chỉ Chi (Hoàn tiền)</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="filter-bar">
-                        <div class="search-box"><input type="text" id="searchReceipt" placeholder="Tìm kiếm biên lai..." oninput="searchReceipts()"></div>
-                    </div>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Mã BL</th>
-                                    <th>Loại</th>
-                                    <th>Học Viên</th>
-                                    <th>Nội Dung</th>
-                                    <th>Số Tiền</th>
-                                    <th>Ngày</th>
-                                    <th>Thao Tác</th>
-                                </tr>
-                            </thead>
-                            <tbody id="receiptsTableBody"></tbody>
-                        </table>
-                    </div>
-                    <div class="pagination-container" id="receiptsPagination"></div>
-                </div>
-
-                <!-- ==================== TAB: CÔNG NỢ ==================== -->
-                <div id="debts" class="tab-content">
-                    <div class="page-header">
-                        <h2>💳 Quản lý Công nợ</h2>
-                        <div class="page-actions">
-                            <button class="btn btn-info" onclick="exportDebtsToExcel()">📤 Export Excel</button>
-                        </div>
-                    </div>
-
-                    <!-- Thống kê công nợ -->
-                    <div class="stats-grid mb-20">
-                        <div class="stat-card">
-                            <div class="stat-icon green">💰</div>
-                            <div class="stat-info">
-                                <h3 id="debtTotalAmount">0</h3>
-                                <p>Tổng phải thu</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon blue">✅</div>
-                            <div class="stat-info">
-                                <h3 id="debtPaidAmount">0</h3>
-                                <p>Đã thu</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon red">⚠️</div>
-                            <div class="stat-info">
-                                <h3 id="debtRemainingAmount">0</h3>
-                                <p>Còn nợ</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon orange">📋</div>
-                            <div class="stat-info">
-                                <h3 id="debtStudentCount">0</h3>
-                                <p>HV còn nợ</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Cảnh báo -->
-                    <div class="card mb-20" id="debtWarningsCard">
-                        <div class="card-header">
-                            <h3>⚠️ Cảnh báo cần xử lý</h3>
-                            <button class="btn btn-sm btn-outline" onclick="refreshDebtWarnings()">🔄 Làm mới</button>
-                        </div>
-                        <div class="card-body" id="debtWarningsList">
-                            <p class="text-muted">Đang tải...</p>
-                        </div>
-                    </div>
-
-                    <!-- Bộ lọc -->
-                    <div class="filter-bar">
-                        <button class="filter-btn active" onclick="filterDebts('all')" data-filter="all">📋 Tất
-                            cả</button>
-                        <button class="filter-btn" onclick="filterDebts('unpaid')" data-filter="unpaid">🔴 Chưa
-                            đóng</button>
-                        <button class="filter-btn" onclick="filterDebts('partial')" data-filter="partial">🟡 Đóng 1
-                            phần</button>
-                        <button class="filter-btn" onclick="filterDebts('paid')" data-filter="paid">🟢 Đã đóng
-                            đủ</button>
-                        <button class="filter-btn" onclick="filterDebts('warning')" data-filter="warning">⚠️ Cần nhắc
-                            nhở</button>
-                        <div class="search-box">
-                            <input type="text" id="searchDebt" placeholder="Tìm kiếm..." oninput="searchDebts()">
-                        </div>
-                    </div>
-
-                    <!-- Bảng công nợ -->
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Học viên</th>
-                                    <th>Mã Phiếu ĐK</th>
-                                    <th>Môn học</th>
-                                    <th>Tổng tiền</th>
-                                    <th>Đã đóng</th>
-                                    <th>Còn nợ</th>
-                                    <th>Còn buổi</th>
-                                    <th>Trạng thái</th>
-                                    <th>Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody id="debtsTableBody"></tbody>
-                        </table>
-                    </div>
-                    <div class="pagination-container" id="debtsPagination"></div>
-                </div>
-
-                <!-- ==================== TAB: GIÁO VIÊN ==================== -->
-                <div id="teachers" class="tab-content">
-                    <div class="page-header">
-                        <h2>👨‍🏫 Quản lý Giáo viên</h2>
-                        <div class="page-actions" id="teachersActions">
-                            <button class="btn btn-success" onclick="openTeacherModal()">➕ Thêm giáo viên</button>
-                        </div>
-                    </div>
-
-                    <div class="filter-bar">
-                        <div class="search-box">
-                            <input type="text" id="searchTeacher" placeholder="Tìm kiếm giáo viên..." oninput="searchTeachers()">
-                        </div>
-                    </div>
-
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Họ tên</th>
-                                    <th>Số điện thoại</th>
-                                    <th>Môn dạy</th>
-                                    <th>Loại lương</th>
-                                    <th>Trạng thái</th>
-                                    <th>Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody id="teachersTableBody"></tbody>
-                        </table>
-                    </div>
-                    <div class="pagination-container" id="teachersPagination"></div>
-                </div>
-
-                <!-- ==================== TAB: LỚP HỌC ==================== -->
-                <div id="classes" class="tab-content">
-                    <div class="page-header">
-                        <h2>📚 Quản lý Lớp học</h2>
-                        <div class="page-actions" id="classesActions">
-                            <button class="btn btn-success" onclick="openClassModal()">➕ Thêm lớp mới</button>
-                        </div>
-                    </div>
-
-                    <div class="filter-bar">
-                        <select id="filterClassSubject" onchange="filterClasses()">
-                            <option value="">📖 Tất cả môn học</option>
-                        </select>
-                        <select id="filterClassTeacher" onchange="filterClasses()">
-                            <option value="">👨‍🏫 Tất cả giáo viên</option>
-                        </select>
-                        <select id="filterClassStatus" onchange="filterClasses()">
-                            <option value="">📊 Tất cả trạng thái</option>
-                            <option value="new">🆕 Lớp mới</option>
-                            <option value="active">🟢 Đang học</option>
-                            <option value="completed">✅ Hoàn thành</option>
-                            <option value="cancelled">❌ Đã hủy</option>
-                        </select>
-                        <div class="search-box">
-                            <input type="text" id="searchClass" placeholder="Tìm kiếm lớp học..." oninput="searchClasses()">
-                        </div>
-                    </div>
-
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Tên lớp</th>
-                                    <th>Môn học</th>
-                                    <th>Giáo viên</th>
-                                    <th>Loại</th>
-                                    <th>Sĩ số</th>
-                                    <th>Lịch học</th>
-                                    <th>Trạng thái</th>
-                                    <th>Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody id="classesTableBody"></tbody>
-                        </table>
-                    </div>
-                    <div class="pagination-container" id="classesPagination"></div>
-                </div>
-
-                <!-- ==================== TAB: ĐIỂM DANH ==================== -->
-                <div id="attendance" class="tab-content">
-                    <div class="page-header">
-                        <h2>✅ Điểm danh</h2>
-                        <div class="page-actions">
-                            <button class="btn btn-info" onclick="exportAttendanceToExcel()">📤 Export Excel</button>
-                        </div>
-                    </div>
-
-                    <!-- Bộ chọn điểm danh -->
-                    <div class="card mb-20">
-                        <div class="card-body">
-                            <div class="d-flex gap-15 flex-wrap align-center">
-                                <div class="form-group" style="margin-bottom: 0; min-width: 200px;">
-                                    <label style="font-size: 12px; margin-bottom: 4px;">Chọn lớp *</label>
-                                    <select id="attendanceClassSelect" onchange="onAttendanceClassChange()">
-                                        <option value="">-- Chọn lớp học --</option>
-                                    </select>
-                                </div>
-                                <div class="form-group" style="margin-bottom: 0; min-width: 150px;">
-                                    <label style="font-size: 12px; margin-bottom: 4px;">Ngày điểm danh *</label>
-                                    <input type="date" id="attendanceDate" onchange="onAttendanceDateChange()">
-                                </div>
-                                <div class="form-group" style="margin-bottom: 0; min-width: 180px;">
-                                    <label style="font-size: 12px; margin-bottom: 4px;">Ca học *</label>
-                                    <select id="attendanceScheduleSelect" onchange="loadAttendanceList()">
-                                        <option value="">-- Chọn ca học --</option>
-                                    </select>
-                                </div>
-                                <div style="padding-top: 18px;">
-                                    <button class="btn btn-primary" onclick="loadAttendanceList()">🔄 Tải danh
-                                        sách</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Lịch học hôm nay -->
-                    <div class="card mb-20" id="todaySchedulesCard">
-                        <div class="card-header">
-                            <h3>📅 Lịch học hôm nay</h3>
-                            <button class="btn btn-sm btn-outline" onclick="refreshTodaySchedules()">🔄 Làm mới</button>
-                        </div>
-                        <div class="card-body" id="todaySchedulesList">
-                            <p class="text-muted">Đang tải...</p>
-                        </div>
-                    </div>
-
-                    <!-- Bảng điểm danh -->
-                    <div class="card" id="attendanceTableCard" style="display: none;">
-                        <div class="card-header">
-                            <h3 id="attendanceTableTitle">📋 Điểm danh</h3>
-                            <div class="d-flex gap-10">
-                                <button class="btn btn-sm btn-success" onclick="markAllPresent()">✅ Tất cả Có
-                                    mặt</button>
-                                <button class="btn btn-sm btn-primary" onclick="saveAttendance()">💾 Lưu điểm
-                                    danh</button>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-container" style="box-shadow: none; border: none;">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Học viên</th>
-                                            <th>Tổng buổi</th>
-                                            <th>Đã học</th>
-                                            <th>Còn lại</th>
-                                            <th style="min-width: 280px;">Trạng thái điểm danh</th>
-                                            <th>Ghi chú</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="attendanceTableBody"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Lịch sử điểm danh -->
-                    <div class="card mt-20">
-                        <div class="card-header">
-                            <h3>📜 Lịch sử điểm danh gần đây</h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-container" style="box-shadow: none; border: none;">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Ngày</th>
-                                            <th>Lớp</th>
-                                            <th>Ca học</th>
-                                            <th>Sĩ số</th>
-                                            <th>Có mặt</th>
-                                            <th>Vắng</th>
-                                            <th>Thao tác</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="attendanceHistoryBody"></tbody>
-                                </table>
-                            </div>
-                            <div class="pagination-container" id="attendanceHistoryPagination"></div>
-                        </div>
-                    </div>
-                    <!-- Thống kê điểm danh theo học viên -->
-                    <div class="card mt-20">
-                        <div class="card-header">
-                            <h3>📊 Thống kê theo Học viên</h3>
-                            <div class="d-flex gap-10">
-                                <select id="attendanceStatClassFilter" onchange="loadAttendanceStatsByStudent()" style="padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 6px;">
-                                    <option value="">Tất cả lớp</option>
-                                </select>
-                                <select id="attendanceStatPeriodFilter" onchange="onAttendanceStatPeriodChange()" style="padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 6px;">
-                                    <option value="thisMonth">Tháng này</option>
-                                    <option value="lastMonth">Tháng trước</option>
-                                    <option value="thisQuarter">Quý này</option>
-                                    <option value="all">Tất cả</option>
-                                </select>
-                                <button class="btn btn-sm btn-info" onclick="exportAttendanceStatsByStudent()">📤
-                                    Export</button>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-container" style="box-shadow: none; border: none;">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Học viên</th>
-                                            <th>Lớp</th>
-                                            <th>Tổng buổi ĐD</th>
-                                            <th>✅ Có mặt</th>
-                                            <th>🟡 Muộn</th>
-                                            <th>❌ Vắng KP</th>
-                                            <th>📝 Có phép</th>
-                                            <th>Tỷ lệ CM</th>
-                                            <th>Chi tiết</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="attendanceStatsByStudentBody">
-                                        <tr>
-                                            <td colspan="9" class="text-center text-muted">Đang tải...</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="pagination-container" id="attendanceStatsPagination"></div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- ==================== TAB: HỌC BÙ ==================== -->
-                <div id="makeup" class="tab-content">
-                    <div class="page-header">
-                        <h2>📝 Quản lý Học bù</h2>
-                        <div class="page-actions">
-                            <button class="btn btn-success" onclick="openCreateMakeupModal()">➕ Tạo yêu cầu học
-                                bù</button>
-                        </div>
-                    </div>
-
-                    <!-- Thống kê -->
-                    <div class="stats-grid mb-20">
-                        <div class="stat-card">
-                            <div class="stat-icon orange">⏳</div>
-                            <div class="stat-info">
-                                <h3 id="makeupPendingCount">0</h3>
-                                <p>Chờ xếp lịch</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon blue">📅</div>
-                            <div class="stat-info">
-                                <h3 id="makeupApprovedCount">0</h3>
-                                <p>Đã xếp lịch</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon red">⚠️</div>
-                            <div class="stat-info">
-                                <h3 id="makeupExpiringCount">0</h3>
-                                <p>Sắp hết hạn (≤7 ngày)</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon green">✅</div>
-                            <div class="stat-info">
-                                <h3 id="makeupCompletedCount">0</h3>
-                                <p>Đã hoàn thành</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Bộ lọc -->
-                    <div class="filter-bar">
-                        <button class="filter-btn active" onclick="filterMakeupRequests('all')" data-filter="all">📋 Tất
-                            cả</button>
-                        <button class="filter-btn" onclick="filterMakeupRequests('pending')" data-filter="pending">⏳ Chờ
-                            xếp lịch</button>
-                        <button class="filter-btn" onclick="filterMakeupRequests('approved')" data-filter="approved">📅
-                            Đã xếp lịch</button>
-                        <button class="filter-btn" onclick="filterMakeupRequests('expiring')" data-filter="expiring">⚠️
-                            Sắp hết hạn</button>
-                        <button class="filter-btn" onclick="filterMakeupRequests('completed')" data-filter="completed">✅
-                            Hoàn thành</button>
-                        <button class="filter-btn" onclick="filterMakeupRequests('expired')" data-filter="expired">❌ Đã
-                            hết hạn</button>
-                    </div>
-
-                    <!-- Bảng yêu cầu học bù -->
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Học viên</th>
-                                    <th>Lớp gốc</th>
-                                    <th>Ngày nghỉ</th>
-                                    <th>Hạn học bù</th>
-                                    <th>Lớp học bù</th>
-                                    <th>Ngày học bù</th>
-                                    <th>Trạng thái</th>
-                                    <th>Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody id="makeupRequestsBody"></tbody>
-                        </table>
-                    </div>
-                    <div class="pagination-container" id="makeupPagination"></div>
-                </div>
-
-                <!-- ==================== TAB: MÔN HỌC ==================== -->
-                <div id="subjects" class="tab-content">
-                    <div class="page-header">
-                        <h2>📖 Danh mục Môn học</h2>
-                        <div class="page-actions" id="subjectsActions"><button class="btn btn-success" onclick="openSubjectModal()">➕ Thêm môn học</button></div>
-                    </div>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Icon</th>
-                                    <th>Tên Môn</th>
-                                    <th>Học Phí Mặc Định</th>
-                                    <th>Thao Tác</th>
-                                </tr>
-                            </thead>
-                            <tbody id="subjectsTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- ==================== TAB: GÓI HỌC PHÍ ==================== -->
-                <div id="packages" class="tab-content">
-                    <div class="page-header">
-                        <h2>📦 Danh mục Gói học phí</h2>
-                        <div class="page-actions" id="packagesActions"><button class="btn btn-success" onclick="openPackageModal()">➕ Thêm gói</button></div>
-                    </div>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Tên Gói</th>
-                                    <th>Môn Học</th>
-                                    <th>Số Buổi</th>
-                                    <th>Học Phí</th>
-                                    <th>Thao Tác</th>
-                                </tr>
-                            </thead>
-                            <tbody id="packagesTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- ==================== TAB: KHUYẾN MÃI ==================== -->
-                <div id="promotions" class="tab-content">
-                    <div class="page-header">
-                        <h2>🎁 Danh mục Khuyến mãi</h2>
-                        <div class="page-actions" id="promotionsActions"><button class="btn btn-success" onclick="openPromotionModal()">➕ Thêm KM</button></div>
-                    </div>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Tên KM</th>
-                                    <th>Loại</th>
-                                    <th>Giá Trị</th>
-                                    <th>Thời Hạn</th>
-                                    <th>Trạng Thái</th>
-                                    <th>Thao Tác</th>
-                                </tr>
-                            </thead>
-                            <tbody id="promotionsTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- ==================== TAB: PHÒNG HỌC ==================== -->
-                <div id="rooms" class="tab-content">
-                    <div class="page-header">
-                        <h2>🏫 Quản lý Phòng học</h2>
-                        <div class="page-actions" id="roomsActions">
-                            <button class="btn btn-success" onclick="openRoomModal()">➕ Thêm phòng</button>
-                        </div>
-                    </div>
-
-                    <!-- Thống kê nhanh -->
-                    <div class="stats-grid mb-20">
-                        <div class="stat-card">
-                            <div class="stat-icon teal">🏫</div>
-                            <div class="stat-info">
-                                <h3 id="roomTotalCount">0</h3>
-                                <p>Tổng phòng</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon green">✅</div>
-                            <div class="stat-info">
-                                <h3 id="roomActiveCount">0</h3>
-                                <p>Đang hoạt động</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon orange">🔧</div>
-                            <div class="stat-info">
-                                <h3 id="roomMaintenanceCount">0</h3>
-                                <p>Đang bảo trì</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon blue">👥</div>
-                            <div class="stat-info">
-                                <h3 id="roomTotalCapacity">0</h3>
-                                <p>Tổng sức chứa</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Bảng danh sách phòng -->
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Tên phòng</th>
-                                    <th>Sức chứa</th>
-                                    <th>Trang thiết bị</th>
-                                    <th>Trạng thái</th>
-                                    <th>Ghi chú</th>
-                                    <th>Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody id="roomsTableBody"></tbody>
-                        </table>
-                    </div>
-
-                    <!-- Lịch sử dụng phòng hôm nay -->
-                    <div class="card mt-20">
-                        <div class="card-header">
-                            <h3>📅 Lịch sử dụng phòng hôm nay</h3>
-                            <button class="btn btn-sm btn-outline" onclick="refreshRoomScheduleToday()">🔄 Làm
-                                mới</button>
-                        </div>
-                        <div class="card-body" id="roomScheduleToday">
-                            <p class="text-muted">Đang tải...</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ==================== TAB: BÁO CÁO ==================== -->
-                <div id="reports" class="tab-content">
-                    <div class="page-header">
-                        <h2>📈 Báo cáo thống kê</h2>
-                        <div class="page-actions">
-                            <button class="btn btn-info" onclick="exportReportToExcel()">📤 Export Excel</button>
-                            <button class="btn btn-primary" onclick="refreshReports()">🔄 Làm mới</button>
-                        </div>
-                    </div>
-
-                    <!-- Bộ chọn thời gian -->
-                    <div class="card mb-20">
-                        <div class="card-body">
-                            <div class="d-flex gap-15 flex-wrap align-center">
-                                <div class="form-group" style="margin-bottom: 0;">
-                                    <label style="font-size: 12px; margin-bottom: 4px;">Khoảng thời gian</label>
-                                    <select id="reportPeriodType" onchange="onReportPeriodChange()">
-                                        <option value="thisMonth">Tháng này</option>
-                                        <option value="lastMonth">Tháng trước</option>
-                                        <option value="thisQuarter">Quý này</option>
-                                        <option value="thisYear">Năm nay</option>
-                                        <option value="custom">Tùy chọn</option>
-                                    </select>
-                                </div>
-                                <div class="form-group" style="margin-bottom: 0;" id="reportFromDateGroup">
-                                    <label style="font-size: 12px; margin-bottom: 4px;">Từ ngày</label>
-                                    <input type="date" id="reportFromDate" onchange="loadReportData()">
-                                </div>
-                                <div class="form-group" style="margin-bottom: 0;" id="reportToDateGroup">
-                                    <label style="font-size: 12px; margin-bottom: 4px;">Đến ngày</label>
-                                    <input type="date" id="reportToDate" onchange="loadReportData()">
-                                </div>
-                                <div style="padding-top: 18px;">
-                                    <button class="btn btn-success" onclick="loadReportData()">📊 Xem báo cáo</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Tab báo cáo con -->
-                    <div class="card">
-                        <div class="card-header" style="border-bottom: none; padding-bottom: 0;">
-                            <div class="report-tabs">
-                                <button class="report-tab active" onclick="switchReportTab('revenue')" data-tab="revenue">💰 Doanh thu</button>
-                                <button class="report-tab" onclick="switchReportTab('students')" data-tab="students">👩‍🎓 Học viên</button>
-                                <button class="report-tab" onclick="switchReportTab('attendance')" data-tab="attendance">✅ Điểm danh</button>
-                                <button class="report-tab" onclick="switchReportTab('debt')" data-tab="debt">💳 Công
-                                    nợ</button>
-                            </div>
-                        </div>
-
-                        <!-- Nội dung báo cáo Doanh thu -->
-                        <div class="card-body report-content" id="reportRevenue">
-                            <div class="stats-grid mb-20">
-                                <div class="stat-card">
-                                    <div class="stat-icon green">💰</div>
-                                    <div class="stat-info">
-                                        <h3 id="revenueTotalAmount">0</h3>
-                                        <p>Tổng doanh thu</p>
-                                    </div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-icon blue">🧾</div>
-                                    <div class="stat-info">
-                                        <h3 id="revenueReceiptCount">0</h3>
-                                        <p>Số biên lai</p>
-                                    </div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-icon orange">📈</div>
-                                    <div class="stat-info">
-                                        <h3 id="revenueAvgAmount">0</h3>
-                                        <p>Trung bình/biên lai</p>
-                                    </div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-icon purple">📋</div>
-                                    <div class="stat-info">
-                                        <h3 id="revenueRegCount">0</h3>
-                                        <p>Phiếu ĐK mới</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="d-flex gap-20 flex-wrap">
-                                <div class="flex-1" style="min-width: 400px;">
-                                    <div class="chart-container" style="background: var(--bg-white); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
-                                        <h4 style="margin-bottom: 15px;">📊 Doanh thu theo thời gian</h4>
-                                        <div id="revenueChartLoading" class="text-center text-muted p-20">Đang tải biểu
-                                            đồ...</div>
-                                        <canvas id="revenueTimeChart" style="display: none;"></canvas>
-                                        <div id="revenueTimeTable" style="display: none; margin-top: 15px;"></div>
-                                    </div>
-                                </div>
-                                <div style="min-width: 300px; max-width: 400px;">
-                                    <div class="chart-container" style="background: var(--bg-white); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
-                                        <h4 style="margin-bottom: 15px;">🎯 Doanh thu theo môn học</h4>
-                                        <div id="revenueSubjectLoading" class="text-center text-muted p-20">Đang tải
-                                            biểu đồ...</div>
-                                        <canvas id="revenueSubjectChart" style="display: none;"></canvas>
-                                        <div id="revenueSubjectTable" style="display: none; margin-top: 15px;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Nội dung báo cáo Học viên -->
-                        <div class="card-body report-content" id="reportStudents" style="display: none;">
-                            <div class="stats-grid mb-20">
-                                <div class="stat-card">
-                                    <div class="stat-icon teal">👥</div>
-                                    <div class="stat-info">
-                                        <h3 id="studentTotalCount">0</h3>
-                                        <p>Tổng học viên</p>
-                                    </div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-icon green">🆕</div>
-                                    <div class="stat-info">
-                                        <h3 id="studentNewCount">0</h3>
-                                        <p>HV mới trong kỳ</p>
-                                    </div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-icon blue">📚</div>
-                                    <div class="stat-info">
-                                        <h3 id="studentActiveCount">0</h3>
-                                        <p>Đang học</p>
-                                    </div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-icon purple">🎓</div>
-                                    <div class="stat-info">
-                                        <h3 id="studentCompletedCount">0</h3>
-                                        <p>Hoàn thành</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="d-flex gap-20 flex-wrap">
-                                <div class="flex-1" style="min-width: 400px;">
-                                    <div class="chart-container" style="background: var(--bg-white); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
-                                        <h4 style="margin-bottom: 15px;">📊 Học viên mới theo tháng</h4>
-                                        <div id="studentChartLoading" class="text-center text-muted p-20">Đang tải biểu
-                                            đồ...</div>
-                                        <canvas id="studentTimeChart" style="display: none;"></canvas>
-                                        <div id="studentTimeTable" style="display: none; margin-top: 15px;"></div>
-                                    </div>
-                                </div>
-                                <div style="min-width: 300px; max-width: 400px;">
-                                    <div class="chart-container" style="background: var(--bg-white); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
-                                        <h4 style="margin-bottom: 15px;">🎯 Phân bổ theo trạng thái</h4>
-                                        <div id="studentStatusLoading" class="text-center text-muted p-20">Đang tải biểu
-                                            đồ...</div>
-                                        <canvas id="studentStatusChart" style="display: none;"></canvas>
-                                        <div id="studentStatusTable" style="display: none; margin-top: 15px;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Nội dung báo cáo Điểm danh -->
-                        <div class="card-body report-content" id="reportAttendance" style="display: none;">
-                            <div class="stats-grid mb-20">
-                                <div class="stat-card">
-                                    <div class="stat-icon teal">📋</div>
-                                    <div class="stat-info">
-                                        <h3 id="attendanceTotalCount">0</h3>
-                                        <p>Tổng lượt điểm danh</p>
-                                    </div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-icon green">✅</div>
-                                    <div class="stat-info">
-                                        <h3 id="attendancePresentRate">0%</h3>
-                                        <p>Tỷ lệ có mặt</p>
-                                    </div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-icon red">❌</div>
-                                    <div class="stat-info">
-                                        <h3 id="attendanceAbsentCount">0</h3>
-                                        <p>Lượt vắng</p>
-                                    </div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-icon orange">📝</div>
-                                    <div class="stat-info">
-                                        <h3 id="attendanceMakeupCount">0</h3>
-                                        <p>Lượt học bù</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="d-flex gap-20 flex-wrap">
-                                <div class="flex-1" style="min-width: 400px;">
-                                    <div class="chart-container" style="background: var(--bg-white); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
-                                        <h4 style="margin-bottom: 15px;">📊 Điểm danh theo ngày</h4>
-                                        <div id="attendanceChartLoading" class="text-center text-muted p-20">Đang tải
-                                            biểu đồ...</div>
-                                        <canvas id="attendanceTimeChart" style="display: none;"></canvas>
-                                        <div id="attendanceTimeTable" style="display: none; margin-top: 15px;"></div>
-                                    </div>
-                                </div>
-                                <div style="min-width: 300px; max-width: 400px;">
-                                    <div class="chart-container" style="background: var(--bg-white); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
-                                        <h4 style="margin-bottom: 15px;">🎯 Tỷ lệ điểm danh</h4>
-                                        <div id="attendanceRateLoading" class="text-center text-muted p-20">Đang tải
-                                            biểu đồ...</div>
-                                        <canvas id="attendanceRateChart" style="display: none;"></canvas>
-                                        <div id="attendanceRateTable" style="display: none; margin-top: 15px;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Nội dung báo cáo Công nợ -->
-                        <div class="card-body report-content" id="reportDebt" style="display: none;">
-                            <div class="stats-grid mb-20">
-                                <div class="stat-card">
-                                    <div class="stat-icon green">💰</div>
-                                    <div class="stat-info">
-                                        <h3 id="debtReportTotal">0</h3>
-                                        <p>Tổng phải thu</p>
-                                    </div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-icon blue">✅</div>
-                                    <div class="stat-info">
-                                        <h3 id="debtReportPaid">0</h3>
-                                        <p>Đã thu trong kỳ</p>
-                                    </div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-icon red">⚠️</div>
-                                    <div class="stat-info">
-                                        <h3 id="debtReportRemaining">0</h3>
-                                        <p>Còn nợ</p>
-                                    </div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-icon orange">📈</div>
-                                    <div class="stat-info">
-                                        <h3 id="debtReportRate">0%</h3>
-                                        <p>Tỷ lệ thu</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="d-flex gap-20 flex-wrap">
-                                <div class="flex-1" style="min-width: 400px;">
-                                    <div class="chart-container" style="background: var(--bg-white); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
-                                        <h4 style="margin-bottom: 15px;">📊 Thu tiền theo thời gian</h4>
-                                        <div id="debtChartLoading" class="text-center text-muted p-20">Đang tải biểu
-                                            đồ...</div>
-                                        <canvas id="debtTimeChart" style="display: none;"></canvas>
-                                        <div id="debtTimeTable" style="display: none; margin-top: 15px;"></div>
-                                    </div>
-                                </div>
-                                <div style="min-width: 300px; max-width: 400px;">
-                                    <div class="chart-container" style="background: var(--bg-white); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
-                                        <h4 style="margin-bottom: 15px;">🎯 Tình trạng công nợ</h4>
-                                        <div id="debtStatusLoading" class="text-center text-muted p-20">Đang tải biểu
-                                            đồ...</div>
-                                        <canvas id="debtStatusChart" style="display: none;"></canvas>
-                                        <div id="debtStatusTable" style="display: none; margin-top: 15px;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ==================== TAB: XUẤT/NHẬP DATA ==================== -->
-                <div id="export" class="tab-content">
-                    <div class="page-header">
-                        <h2>📤 Xuất/Nhập dữ liệu &amp; Sao lưu</h2>
-                    </div>
-                    <div class="settings-group">
-                        <h3>📊 Xuất File Excel</h3>
-                        <div class="d-flex gap-10 flex-wrap">
-                            <button class="btn btn-success" onclick="exportAllToExcel()">📊 Xuất Tất Cả</button>
-                            <button class="btn btn-info" onclick="exportStudentsToExcel()">👩‍🎓 Học Viên</button>
-                            <button class="btn btn-warning" onclick="exportAppointmentsToExcel()">📅 Lịch Hẹn</button>
-                            <button class="btn btn-primary" onclick="exportRegistrationsToExcel()">📋 Phiếu ĐK</button>
-                            <button class="btn btn-secondary" onclick="exportReceiptsToExcel()">🧾 Biên Lai</button>
-                        </div>
-                    </div>
-                    <div class="settings-group">
-                        <h3>💾 Sao Lưu &amp; Khôi Phục</h3>
-                        <div class="d-flex gap-10 flex-wrap">
-                            <button class="btn btn-success" onclick="exportBackupJSON()">💾 Tải Backup JSON</button>
-                            <label class="btn btn-info" style="cursor: pointer;">📁 Khôi Phục JSON<input type="file" accept=".json" onchange="restoreFromJSON(event)" style="display: none;"></label>
-                            <label class="btn btn-warning" style="cursor: pointer;">📥 Import Excel<input type="file" accept=".xlsx,.xls" onchange="importFromExcel(event)" style="display: none;"></label>
-                        </div>
-                    </div>
-                    <div class="settings-group">
-                        <h3>📜 Lịch Sử Backup Tự Động</h3>
-                        <div id="backupHistoryList"></div>
-                    </div>
-                </div>
-
-                <!-- ==================== TAB: TÀI KHOẢN ==================== -->
-                <div id="users" class="tab-content">
-                    <div class="page-header">
-                        <h2>🔐 Quản lý Tài khoản</h2>
-                        <div class="page-actions"><button class="btn btn-success" onclick="openUserModal()">➕ Thêm tài
-                                khoản</button></div>
-                    </div>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Username</th>
-                                    <th>Họ tên</th>
-                                    <th>Vai trò</th>
-                                    <th>Trạng thái</th>
-                                    <th>Đăng nhập cuối</th>
-                                    <th>Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody id="usersTableBody"></tbody>
-                        </table>
-                    </div>
-
-                    <!-- Phân quyền động -->
-                    <div class="card mt-20">
-                        <div class="card-header">
-                            <h3>⚙️ Phân quyền theo vai trò</h3>
-                            <select id="permissionRoleSelect" onchange="loadPermissionsForRole()">
-                                <option value="admin">Admin</option>
-                                <option value="manager">Manager</option>
-                                <option value="user">User</option>
-                            </select>
-                        </div>
-                        <div class="card-body">
-                            <div class="permission-matrix" id="permissionMatrix">
-                                <!-- Render bằng JS -->
-                            </div>
-                            <div class="form-actions mt-15">
-                                <button class="btn btn-primary" onclick="savePermissions()">💾 Lưu phân quyền</button>
-                                <button class="btn btn-secondary" onclick="resetPermissions()">🔄 Reset mặc
-                                    định</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ==================== TAB: CÀI ĐẶT ==================== -->
-                <div id="settings" class="tab-content">
-                    <div class="page-header">
-                        <h2>⚙️ Cài đặt hệ thống</h2>
-                    </div>
-                    <div class="settings-group">
-                        <h3>🏢 Thông Tin Trung Tâm</h3>
-                        <form id="centerInfoForm" onsubmit="saveCenterInfo(event)">
-                            <div class="form-row">
-                                <div class="form-group"><label>Tên Trung Tâm *</label>
-<input type="text" id="centerName" placeholder="VD: Trung Tâm ABC"></div>
-                                <div class="form-group"><label>Số Điện Thoại *</label>
-<input type="tel" id="centerPhone" placeholder="VD: 0912345678"></div>
-                            </div>
-                            <div class="form-group"><label>Địa Chỉ *</label>
-<input type="text" id="centerAddress" placeholder="VD: 123 Đường ABC"></div>
-                            <div class="form-row">
-                                <div class="form-group"><label>Email</label>
-<input type="email" id="centerEmail" placeholder="VD: contact@abc.edu.vn"></div>
-                                <div class="form-group"><label>Website</label>
-<input type="url" id="centerWebsite" placeholder="VD: https://abc.edu.vn"></div>
-                            </div>
-                            <div class="form-group">
-                                <label>Logo</label>
-                                <input type="file" id="centerLogo" accept="image/*" onchange="previewLogo(event)">
-                                <div class="logo-preview" id="logoPreview"><span class="text-muted">Logo</span></div>
-                            </div>
-                            <button type="submit" class="btn btn-primary">💾 Lưu thông tin</button>
-                        </form>
-                    </div>
-                    <div class="settings-group">
-                        <h3>💳 Thông Tin Ngân Hàng</h3>
-                        <form id="bankInfoForm" onsubmit="saveBankInfo(event)">
-                            <div class="form-row">
-                                <div class="form-group"><label>Tên Ngân Hàng *</label>
-<input type="text" id="bankName" placeholder="VD: Vietcombank"></div>
-                                <div class="form-group"><label>Số Tài Khoản *</label>
-<input type="text" id="bankAccount" placeholder="VD: 1234567890"></div>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group"><label>Chủ Tài Khoản *</label>
-<input type="text" id="bankAccountName" placeholder="VD: NGUYEN VAN A"></div>
-                                <div class="form-group"><label>Chi Nhánh</label>
-<input type="text" id="bankBranch" placeholder="VD: Chi nhánh Tân Bình"></div>
-                            </div>
-                            <button type="submit" class="btn btn-primary">💾 Lưu thông tin</button>
-                        </form>
-                        <div class="mt-15">
-                            <h4 style="font-size: 14px; margin-bottom: 10px;">QR Chuyển Khoản:</h4>
-                            <div id="bankQRCode"></div>
-                        </div>
-                    </div>
-                    <div class="settings-group">
-                        <h3>🔄 Sao Lưu Tự Động</h3>
-                        <div class="d-flex align-center gap-15">
-                            <label class="d-flex align-center gap-10" style="cursor: pointer;"><input type="checkbox" id="autoBackupToggle" onchange="toggleAutoBackup()"><span>Bật sao lưu tự
-                                    động</span></label>
-                            <span id="autoBackupStatus" class="text-muted"></span>
-                        </div>
-                    </div>
-                    <div class="settings-group">
-                        <h3>⚠️ Cài Đặt Cảnh Báo</h3>
-                        <form id="warningSettingsForm" onsubmit="saveWarningSettings(event)">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Cảnh báo khi còn ít buổi (ngưỡng 1 - Nhẹ)</label>
-                                    <input type="number" id="warningThreshold1" min="1" max="20" value="5" placeholder="VD: 5">
-                                </div>
-                                <div class="form-group">
-                                    <label>Cảnh báo khi còn ít buổi (ngưỡng 2 - Trung bình)</label>
-                                    <input type="number" id="warningThreshold2" min="1" max="10" value="3" placeholder="VD: 3">
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Cảnh báo khi còn ít buổi (ngưỡng 3 - Cao)</label>
-                                    <input type="number" id="warningThreshold3" min="1" max="5" value="1" placeholder="VD: 1">
-                                </div>
-                                <div class="form-group">
-                                    <label>Hiển thị cảnh báo trên Dashboard</label>
-                                    <select id="showWarningOnDashboard">
-                                        <option value="true">Có</option>
-                                        <option value="false">Không</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <button type="submit" class="btn btn-primary">💾 Lưu cài đặt cảnh báo</button>
-                        </form>
-                    </div>
-
-                    <div class="settings-group">
-                        <h3>🗑️ Xóa Dữ Liệu</h3>
-                        <p class="text-muted mb-15" style="font-size: 13px;">⚠️ Hành động này không thể hoàn tác!</p>
-
-                        <div class="d-flex gap-10 flex-wrap">
-                            <div class="settings-group">
-                                <h3>🎲 Tạo Dữ Liệu Demo</h3>
-                                <p class="text-muted mb-15" style="font-size: 13px;">Tạo dữ liệu mẫu để test hệ thống.
-                                    Bao gồm: Học viên, Giáo viên, Lớp học, Phiếu ĐK, Biên lai, Điểm danh, Học bù.</p>
-
-                                <div style="background: #EBF5FB; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                                    <h4 style="margin: 0 0 10px 0; color: #1A5276; font-size: 14px;">📋 Dữ liệu sẽ được
-                                        tạo:</h4>
-                                    <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #2471A3;">
-                                        <li>15 Học viên (đủ trạng thái)</li>
-                                        <li>4 Giáo viên</li>
-                                        <li>6 Lớp học + 12 Ca học</li>
-                                        <li>12 Phiếu đăng ký</li>
-                                        <li>8 Biên lai thanh toán</li>
-                                        <li>5 Lịch hẹn học thử</li>
-                                        <li>30+ Điểm danh</li>
-                                        <li>3 Yêu cầu học bù</li>
-                                    </ul>
-                                </div>
-
-                                <button class="btn btn-success" onclick="generateDemoData()">🎲 Tạo Dữ Liệu
-                                    Demo</button>
-                            </div>
-
-                            <div style="flex: 1; min-width: 250px; background: #FEF9E7; padding: 15px; border-radius: 8px; border: 1px solid #F39C12;">
-                                <h4 style="margin: 0 0 10px 0; color: #9A7B0A; font-size: 14px;">🧹 Xóa Dữ Liệu Demo
-                                </h4>
-                                <p style="font-size: 12px; color: #7D6608; margin-bottom: 10px;">
-                                    Xóa: Học viên, Lịch hẹn, Phiếu ĐK, Biên lai, Giáo viên, Lớp học, Điểm danh, Học
-                                    bù.<br>
-                                    <strong>Giữ lại:</strong> Tài khoản, Phân quyền, Môn học, Gói học phí, Khuyến mãi,
-                                    Cài đặt.
-                                </p>
-                                <button class="btn btn-warning" onclick="clearDemoData()">🧹 Xóa Dữ Liệu Demo</button>
-                            </div>
-
-                            <div style="flex: 1; min-width: 250px; background: #FDEDEC; padding: 15px; border-radius: 8px; border: 1px solid #E74C3C;">
-                                <h4 style="margin: 0 0 10px 0; color: #922B21; font-size: 14px;">🗑️ Xóa Toàn Bộ Dữ Liệu
-                                </h4>
-                                <p style="font-size: 12px; color: #7B241C; margin-bottom: 10px;">
-                                    Xóa TẤT CẢ dữ liệu nghiệp vụ.<br>
-                                    <strong>Giữ lại:</strong> Chỉ giữ Tài khoản đăng nhập và Môn học mặc định.
-                                </p>
-                                <button class="btn btn-danger" onclick="clearAllData()">🗑️ Xóa Toàn Bộ</button>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-            </main>
+    <!-- Admin Panel -->
+    <div id="adminPanel" class="admin-panel" style="display: none;">
+        <div class="admin-header">
+            <h3><i class="fas fa-user-shield"></i> Admin Panel</h3>
+            <button class="btn btn-small" id="btnLogout">Đăng xuất</button>
+        </div>
+        <div class="admin-actions">
+            <button class="btn btn-small" onclick="window.open('https://docs.google.com/spreadsheets/', '_blank')">
+                <i class="fas fa-table"></i> Mở Google Sheets
+            </button>
+            <button class="btn btn-small" onclick="refreshData()">
+                <i class="fas fa-sync"></i> Làm mới dữ liệu
+            </button>
         </div>
     </div>
 
-    <!-- ============================================================
-         🔔 MODALS
-         ============================================================ -->
-
-    <!-- Quick View Modal -->
-    <div id="quickViewModal" class="modal">
-        <div class="modal-content modal-lg">
-            <div class="modal-header">
-                <h2>👁️ Thông Tin Chi Tiết</h2>
-<button class="modal-close" onclick="closeModal('quickViewModal')">×</button>
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-slider">
+            <div class="hero-slide active" style="background-image: linear-gradient(rgba(37, 99, 235, 0.7), rgba(37, 99, 235, 0.8)), url('https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1600');">
+                <div class="container">
+                    <div class="hero-content">
+                        <h1 class="hero-title">Phát triển Toàn diện<br>Tương lai Rực rỡ</h1>
+                        <p class="hero-subtitle">Đào tạo kỹ năng sống, tư duy sáng tạo và kiến thức vững chắc cho trẻ từ 3-15 tuổi</p>
+                        <div class="hero-buttons">
+                            <a href="#courses" class="btn btn-primary btn-large">Khám phá khóa học</a>
+                            <a href="#contact" class="btn btn-outline btn-large">Đăng ký tư vấn</a>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="modal-body" id="quickViewContent"></div>
-            <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('quickViewModal')">Đóng</button></div>
+            <div class="hero-slide" style="background-image: linear-gradient(rgba(245, 158, 11, 0.7), rgba(245, 158, 11, 0.8)), url('https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1600');">
+                <div class="container">
+                    <div class="hero-content">
+                        <h1 class="hero-title">Học tập Sáng tạo<br>Phương pháp Hiện đại</h1>
+                        <p class="hero-subtitle">Áp dụng giáo dục STEM, PBL và phương pháp Montessori cho trẻ</p>
+                        <div class="hero-buttons">
+                            <a href="#about" class="btn btn-primary btn-large">Tìm hiểu thêm</a>
+                            <a href="#contact" class="btn btn-outline btn-large">Liên hệ ngay</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
+        <button class="hero-nav hero-prev"><i class="fas fa-chevron-left"></i></button>
+        <button class="hero-nav hero-next"><i class="fas fa-chevron-right"></i></button>
+        <div class="hero-dots"></div>
+    </section>
 
-    <!-- Appointment Modal -->
-    <div id="appointmentModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="appointmentModalTitle">📅 Đặt Lịch Hẹn</h2>
-<button class="modal-close" onclick="closeModal('appointmentModal')">×</button>
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-number" data-target="2500">0</div>
+                    <div class="stat-label">Học viên</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="fas fa-book"></i></div>
+                    <div class="stat-number" data-target="50">0</div>
+                    <div class="stat-label">Khóa học</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                    <div class="stat-number" data-target="35">0</div>
+                    <div class="stat-label">Giáo viên</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="fas fa-award"></i></div>
+                    <div class="stat-number" data-target="98">0</div>
+                    <div class="stat-label">% Hài lòng</div>
+                </div>
             </div>
-            <div class="modal-body">
-                <form id="appointmentForm" onsubmit="saveAppointment(event)">
-                    <input type="hidden" id="appointmentStudentId"><input type="hidden" id="editAppointmentId">
-                    <div class="form-group"><label>Học Viên *</label>
-<select id="appointmentStudentSelect" required="" onchange="onAppointmentStudentChange()">
-                            <option value="">-- Chọn học viên --</option>
-                        </select></div>
-                    <div class="form-group"><label>Môn Học *</label>
-<select id="appointmentSubject" required="">
-                            <option value="">-- Chọn môn học --</option>
-                        </select></div>
-                    <div class="form-row">
-                        <div class="form-group"><label>Ngày Hẹn *</label>
-<input type="date" id="appointmentDate" required=""></div>
-                        <div class="form-group"><label>Giờ Hẹn *</label>
-<input type="time" id="appointmentTime" required=""></div>
-                    </div>
-                    <div class="form-group"><label>Ghi Chú</label>
-<textarea id="appointmentNotes" rows="2" placeholder="Ghi chú"></textarea></div>
-                    <div id="appointmentConflictWarning" class="d-none" style="background: #FEF5E7; padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #F39C12; font-size: 13px;">
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="closeModal('appointmentModal')">Hủy</button>
-<button type="submit" form="appointmentForm" class="btn btn-success">💾 Lưu</button></div>
         </div>
-    </div>
+    </section>
 
-    <!-- Registration Modal -->
-    <div id="registrationModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>📋 Tạo Phiếu Đăng Ký</h2>
-                <button class="modal-close" onclick="closeModal('registrationModal')">×</button>
+    <!-- About Section -->
+    <section id="about" class="section about">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Về SKILLUP CENTER</h2>
+                <p class="section-subtitle">Hành trình phát triển giáo dục toàn diện cho trẻ em Việt Nam</p>
             </div>
-            <div class="modal-body">
-                <form id="registrationForm" onsubmit="saveRegistration(event)">
-                    <input type="hidden" id="regStudentId">
-                    <input type="hidden" id="editRegId" value="">
+            <div class="about-content">
+                <div class="about-text">
+                    <h3>Tầm nhìn & Sứ mệnh</h3>
+                    <p>SKILLUP CENTER được thành lập với sứ mệnh mang đến cho trẻ em Việt Nam một nền giáo dục toàn diện, kết hợp giữa kiến thức học thuật vững chắc và kỹ năng sống thiết yếu trong thế kỷ 21.</p>
+                    <p>Chúng tôi tin rằng mỗi đứa trẻ đều có tiềm năng độc đáo cần được khơi dậy và phát triển theo cách riêng của mình. Với đội ngũ giáo viên tâm huyết và phương pháp giảng dạy hiện đại, chúng tôi cam kết tạo ra môi trường học tập an toàn, sáng tạo và đầy cảm hứng.</p>
+                    
+                    <h3>Giá trị cốt lõi</h3>
+                    <ul class="about-values">
+                        <li><i class="fas fa-check-circle"></i> <strong>Toàn diện:</strong> Phát triển cả trí tuệ, thể chất và cảm xúc</li>
+                        <li><i class="fas fa-check-circle"></i> <strong>Cá nhân hóa:</strong> Tôn trọng sự khác biệt của mỗi học viên</li>
+                        <li><i class="fas fa-check-circle"></i> <strong>Thực hành:</strong> Học qua trải nghiệm và dự án thực tế</li>
+                        <li><i class="fas fa-check-circle"></i> <strong>Sáng tạo:</strong> Khuyến khích tư duy độc lập và giải quyết vấn đề</li>
+                    </ul>
+                </div>
+                <div class="about-image">
+                    <img src="https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=800" alt="SKILLUP CENTER" loading="lazy">
+                    <div class="about-badge">
+                        <i class="fas fa-award"></i>
+                        <span>Top 10<br>Trung tâm<br>Uy tín 2024</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-                    <!-- Chọn học viên -->
-                    <div class="form-group">
-                        <label>Học Viên *</label>
-                        <select id="regStudentSelect" required="" onchange="onRegStudentChange()">
-                            <option value="">-- Chọn học viên --</option>
-                        </select>
+    <!-- Courses Section -->
+    <section id="courses" class="section courses">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Chương trình Đào tạo</h2>
+                <p class="section-subtitle">Khóa học đa dạng phù hợp với mọi lứa tuổi</p>
+            </div>
+
+            <!-- Course Filters -->
+            <div class="course-filters">
+                <button class="filter-btn active" data-filter="all">Tất cả</button>
+                <button class="filter-btn" data-filter="3-6">3-6 tuổi</button>
+                <button class="filter-btn" data-filter="7-10">7-10 tuổi</button>
+                <button class="filter-btn" data-filter="11-15">11-15 tuổi</button>
+                <button class="filter-btn" data-filter="năng khiếu">Kỹ năng</button>
+                <button class="filter-btn" data-filter="tư duy">Tư duy</button>
+                <button class="filter-btn" data-filter="ngôn ngữ">Nghệ thuật</button>
+            </div>
+
+            <!-- Courses Grid -->
+            <div class="courses-grid" id="coursesGrid">
+                <!-- Courses will be loaded dynamically -->
+                <div class="loading-placeholder">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Đang tải khóa học...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Teachers Section -->
+    <section id="teachers" class="section teachers">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Đội ngũ Giáo viên</h2>
+                <p class="section-subtitle">Chuyên gia giàu kinh nghiệm, tâm huyết với giáo dục</p>
+            </div>
+            <div class="teachers-grid" id="teachersGrid">
+                <!-- Teachers will be loaded dynamically -->
+                <div class="loading-placeholder">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Đang tải thông tin giáo viên...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Blog Section -->
+    <section id="blog" class="section blog">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Blog Giáo dục</h2>
+                <p class="section-subtitle">Chia sẻ kiến thức và kinh nghiệm nuôi dạy con</p>
+            </div>
+
+            <!-- Blog Search -->
+            <div class="blog-search">
+                <input type="text" id="blogSearch" placeholder="Tìm kiếm bài viết...">
+                <button><i class="fas fa-search"></i></button>
+            </div>
+
+            <!-- Blog Grid -->
+            <div class="blog-grid" id="blogGrid">
+                <!-- Blog posts will be loaded dynamically -->
+                <div class="loading-placeholder">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Đang tải bài viết...</p>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="blogPagination"></div>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section id="gallery" class="section gallery">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Thư viện Hình ảnh</h2>
+                <p class="section-subtitle">Những khoảnh khắc đáng nhớ tại SKILLUP CENTER</p>
+            </div>
+            <div class="gallery-grid" id="galleryGrid">
+                <!-- Gallery images will be loaded dynamically -->
+                <div class="loading-placeholder">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Đang tải hình ảnh...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="section contact">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Liên hệ & Đăng ký</h2>
+                <p class="section-subtitle">Để lại thông tin để được tư vấn miễn phí</p>
+            </div>
+            <div class="contact-content">
+                <div class="contact-info">
+                    <h3>Thông tin liên hệ</h3>
+                    <div class="contact-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <strong>Địa chỉ</strong>
+                            <p>35A Đường số 5, Cư xá Chu Văn An, Phường Bình Thạnh, TP.HCM</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <strong>Hotline</strong>
+                            <p>0888 940 800</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <strong>Email</strong>
+                            <p><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f4979b9a80959780b4879f9d9898818497919a809186da919081da829a">office.skillupvn@gmail.com</a></p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <strong>Giờ làm việc</strong>
+                            <p>T2-T7: 8:00 - 20:00<br>CN: 8:00 - 18:00</p>
+                        </div>
+                    </div>
+                    <div class="social-links">
+                        <a href="https://www.facebook.com/trungtamkynangvanghethuatskillup" target="_blank"><i class="fab fa-facebook"></i></a>
+                        <a href="#" target="_blank"><i class="fab fa-youtube"></i></a>
+                        <a href="#" target="_blank"><i class="fab fa-instagram"></i></a>
+                        <a href="#" target="_blank"><i class="fab fa-tiktok"></i></a>
                     </div>
 
-                    <!-- Môn học & Gói -->
-                    <div class="form-row">
+                    <!-- Map -->
+                    <div class="map-container">
+                        
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3918.9896494573113!2d106.7044347739998!3d10.812103558536773!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3175291a4780ea2d%3A0x2941e73fd8710297!2sSKILLUP%20CENTER!5e0!3m2!1svi!2s!4v1772248003752!5m2!1svi!2s" 
+                            width="100%" height="300" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                    </div>
+                </div>
+
+                <div class="contact-form-wrapper">
+                    <form id="contactForm" class="contact-form">
+                        <h3>Đăng ký tư vấn</h3>
                         <div class="form-group">
-                            <label>Môn Học *</label>
-                            <select id="regSubject" required="" onchange="loadPackagesForSubject()">
-                                <option value="">-- Chọn môn --</option>
+                            <label for="parentName">Họ tên phụ huynh *</label>
+                            <input type="text" id="parentName" name="parentName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Số điện thoại *</label>
+                            <input type="tel" id="phone" name="phone" required pattern="[0-9]{10,11}">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email">
+                        </div>
+                        <div class="form-group">
+                            <label for="childAge">Độ tuổi con</label>
+                            <select id="childAge" name="childAge">
+                                <option value="">-- Chọn độ tuổi --</option>
+                                <option value="3-6">3-6 tuổi</option>
+                                <option value="7-10">7-10 tuổi</option>
+                                <option value="11-15">11-15 tuổi</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Gói Học Phí *</label>
-                            <select id="regPackage" required="" onchange="applyPackageFee()">
-                                <option value="">-- Chọn gói --</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Số buổi & Ngày bắt đầu -->
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Số Buổi Học *</label>
-                            <input type="number" id="regTotalSessions" required="" min="1" max="200" placeholder="VD: 8">
-                            <small class="text-muted" style="font-size: 11px;">Tự động theo gói, có thể chỉnh
-                                sửa</small>
-                        </div>
-                        <div class="form-group">
-                            <label>Ngày Bắt Đầu Học</label>
-                            <input type="date" id="regStartDate">
-                            <small class="text-muted" style="font-size: 11px;">Để trống nếu chưa xác định</small>
-                        </div>
-                    </div>
-
-                    <!-- Học phí -->
-                    <div class="form-group">
-                        <label>Học Phí (VNĐ) *</label>
-                        <input type="text" id="regTuitionFee" required="" placeholder="VD: 2,000,000" oninput="formatCurrencyInput(this); calculateFinalAmount()">
-                    </div>
-
-                    <!-- Khuyến mãi -->
-                    <div class="form-group">
-                        <label>Khuyến Mãi</label>
-                        <div id="regPromotionList" class="checkbox-group"></div>
-                    </div>
-
-                    <!-- Giảm giá & Thành tiền -->
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Giảm Giá</label>
-                            <input type="text" id="regDiscountAmount" readonly="" style="background: #FDEDEC; color: #E74C3C; font-weight: 600;">
-                        </div>
-                        <div class="form-group">
-                            <label>Thành Tiền</label>
-                            <input type="text" id="regFinalAmount" readonly="" style="background: #E8F8F0; color: #27AE60; font-weight: 600;">
-                        </div>
-                    </div>
-
-                    <!-- Ngày đăng ký -->
-                    <div class="form-group">
-                        <label>Ngày Đăng Ký *</label>
-                        <input type="date" id="regDate" required="">
-                    </div>
-
-                    <!-- Ghi chú -->
-                    <div class="form-group">
-                        <label>Ghi Chú</label>
-                        <textarea id="regNotes" rows="2" placeholder="Ghi chú thêm về phiếu đăng ký (tùy chọn)"></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('registrationModal')">Hủy</button>
-                <button type="submit" form="registrationForm" class="btn btn-success">✅ Lưu Phiếu ĐK</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- View Registration Modal -->
-    <div id="viewRegistrationModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>📋 Chi Tiết Phiếu Đăng Ký</h2>
-<button class="modal-close" onclick="closeModal('viewRegistrationModal')">×</button>
-            </div>
-            <div class="modal-body" id="registrationPreviewContent"></div>
-            <div class="modal-footer">
-                <button class="btn btn-info" onclick="printRegistration()">🖨️ In</button>
-                <button class="btn btn-primary" onclick="downloadRegistrationPDF()">📄 Tải PDF</button>
-                <button class="btn btn-secondary" onclick="closeModal('viewRegistrationModal')">Đóng</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Receipt Modal -->
-    <div id="receiptModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>🧾 Tạo Biên Lai</h2>
-<button class="modal-close" onclick="closeModal('receiptModal')">×</button>
-            </div>
-            <div class="modal-body">
-                <form id="receiptForm" onsubmit="saveReceipt(event)">
-                    <input type="hidden" id="editReceiptId">
-                    <div class="form-group">
-                        <label>Loại biên lai *</label>
-                        <select id="receiptType" required="" onchange="onReceiptTypeChange()">
-                            <option value="">-- Chọn loại --</option>
-                            <optgroup label="Thu tiền">
-                                <option value="Biên Lai Điện Tử">💳 Biên Lai Điện Tử (Chuyển khoản)</option>
-                                <option value="Phiếu Thu">💵 Phiếu Thu (Tiền mặt)</option>
-                            </optgroup>
-                            <optgroup label="Chi tiền">
-                                <option value="Phiếu Chi">🔴 Phiếu Chi (Hoàn tiền)</option>
-                            </optgroup>
-                        </select>
-                    </div>
-
-                    <div class="form-group"><label>Học Viên *</label>
-<select id="receiptStudentId" required="" onchange="fillReceiptStudentInfo()">
-                            <option value="">-- Chọn học viên --</option>
-                        </select></div>
-                    <div class="form-row">
-                        <div class="form-group"><label>Phụ Huynh</label>
-<input type="text" id="receiptParentName" readonly="" style="background: var(--bg-light);"></div>
-                        <div class="form-group"><label>SĐT</label>
-<input type="text" id="receiptParentPhone" readonly="" style="background: var(--bg-light);"></div>
-                    </div>
-                    <div class="form-group"><label>Liên kết Phiếu ĐK</label>
-<select id="receiptRegistrationSelect" onchange="fillFromRegistration()">
-                            <option value="">-- Chọn phiếu ĐK --</option>
-                        </select>
-<input type="hidden" id="receiptRegistrationId"></div>
-                    <div class="form-group"><label>Nội Dung *</label>
-<input type="text" id="receiptDescription" required="" placeholder="VD: Học phí tháng 1"></div>
-                    <div class="form-row">
-                        <div class="form-group"><label>Số Tiền (VNĐ) *</label>
-<input type="text" id="receiptAmount" required="" placeholder="VD: 2,000,000" oninput="formatCurrencyInput(this)"></div>
-                        <div class="form-group"><label>Ngày *</label>
-<input type="date" id="receiptDate" required=""></div>
-                    </div>
-                    <div class="form-group"><label>Ghi Chú</label>
-<textarea id="receiptNotes" rows="2" placeholder="Ghi chú"></textarea></div>
-                </form>
-            </div>
-            <div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="closeModal('receiptModal')">Hủy</button>
-<button type="submit" form="receiptForm" class="btn btn-success">💾 Lưu</button></div>
-        </div>
-    </div>
-
-    <!-- View Receipt Modal -->
-    <div id="viewReceiptModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>🧾 Xem Biên Lai</h2>
-<button class="modal-close" onclick="closeModal('viewReceiptModal')">×</button>
-            </div>
-            <div class="modal-body" id="receiptPreviewContent"></div>
-            <div class="modal-footer">
-                <button class="btn btn-info" onclick="printReceipt()">🖨️ In</button>
-                <button class="btn btn-primary" onclick="downloadReceiptPDF()">📄 Tải PDF</button>
-                <button class="btn btn-secondary" onclick="closeModal('viewReceiptModal')">Đóng</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Subject Modal -->
-    <div id="subjectModal" class="modal">
-        <div class="modal-content modal-sm">
-            <div class="modal-header">
-                <h2 id="subjectModalTitle">📖 Thêm Môn Học</h2>
-<button class="modal-close" onclick="closeModal('subjectModal')">×</button>
-            </div>
-            <div class="modal-body">
-                <form id="subjectForm" onsubmit="saveSubject(event)">
-                    <input type="hidden" id="editSubjectId">
-                    <div class="form-row">
-                        <div class="form-group"><label>Icon *</label>
-<input type="text" id="subjectIcon" required="" placeholder="VD: ♟️"></div>
-                        <div class="form-group"><label>Tên Môn *</label>
-<input type="text" id="subjectName" required="" placeholder="VD: Cờ Vua"></div>
-                    </div>
-                    <div class="form-group"><label>Học Phí Mặc Định *</label>
-<input type="text" id="subjectDefaultFee" required="" placeholder="VD: 2,000,000" oninput="formatCurrencyInput(this)"></div>
-                </form>
-            </div>
-            <div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="closeModal('subjectModal')">Hủy</button>
-<button type="submit" form="subjectForm" class="btn btn-success">💾 Lưu</button></div>
-        </div>
-    </div>
-
-    <!-- Package Modal -->
-    <div id="packageModal" class="modal">
-        <div class="modal-content modal-sm">
-            <div class="modal-header">
-                <h2 id="packageModalTitle">📦 Thêm Gói Học Phí</h2>
-<button class="modal-close" onclick="closeModal('packageModal')">×</button>
-            </div>
-            <div class="modal-body">
-                <form id="packageForm" onsubmit="savePackage(event)">
-                    <input type="hidden" id="editPackageId">
-                    <div class="form-group"><label>Tên Gói *</label>
-<input type="text" id="packageName" required="" placeholder="VD: Gói Cơ Bản"></div>
-                    <div class="form-row">
-                        <div class="form-group"><label>Môn Học *</label>
-<select id="packageSubject" required=""></select>
-                        </div>
-                        <div class="form-group"><label>Số Buổi *</label>
-<input type="number" id="packageSessions" required="" min="1" placeholder="VD: 8"></div>
-                    </div>
-                    <div class="form-group"><label>Học Phí *</label>
-<input type="text" id="packageFee" required="" placeholder="VD: 1,600,000" oninput="formatCurrencyInput(this)"></div>
-                </form>
-            </div>
-            <div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="closeModal('packageModal')">Hủy</button>
-<button type="submit" form="packageForm" class="btn btn-success">💾 Lưu</button></div>
-        </div>
-    </div>
-
-    <!-- Promotion Modal -->
-    <div id="promotionModal" class="modal">
-        <div class="modal-content modal-sm">
-            <div class="modal-header">
-                <h2 id="promotionModalTitle">🎁 Thêm Khuyến Mãi</h2>
-<button class="modal-close" onclick="closeModal('promotionModal')">×</button>
-            </div>
-            <div class="modal-body">
-                <form id="promotionForm" onsubmit="savePromotion(event)">
-                    <input type="hidden" id="editPromotionId">
-                    <div class="form-group"><label>Tên KM *</label>
-<input type="text" id="promotionName" required="" placeholder="VD: KM Khai Trương"></div>
-                    <div class="form-row">
-                        <div class="form-group"><label>Loại *</label>
-<select id="promotionType" required="">
-                                <option value="percent">Giảm %</option>
-                                <option value="fixed">Giảm VNĐ</option>
-                            </select></div>
-                        <div class="form-group"><label>Giá Trị *</label>
-<input type="number" id="promotionValue" required="" min="0" placeholder="VD: 10"></div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group"><label>Từ Ngày *</label>
-<input type="date" id="promotionStartDate" required=""></div>
-                        <div class="form-group"><label>Đến Ngày *</label>
-<input type="date" id="promotionEndDate" required=""></div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="closeModal('promotionModal')">Hủy</button>
-<button type="submit" form="promotionForm" class="btn btn-success">💾 Lưu</button></div>
-        </div>
-    </div>
-
-    <!-- User Modal (Thêm/Sửa tài khoản) -->
-    <div id="userModal" class="modal">
-        <div class="modal-content modal-sm">
-            <div class="modal-header">
-                <h2 id="userModalTitle">👤 Thêm Tài Khoản</h2>
-<button class="modal-close" onclick="closeModal('userModal')">×</button>
-            </div>
-            <div class="modal-body">
-                <form id="userForm" onsubmit="saveUser(event)">
-                    <input type="hidden" id="editUserId">
-                    <div class="form-group">
-                        <label>Tên đăng nhập *</label>
-                        <input type="text" id="userUsername" required="" placeholder="VD: nhanvien01" pattern="[a-zA-Z0-9_]+" title="Chỉ chữ, số và dấu gạch dưới">
-                    </div>
-                    <div class="form-group" id="passwordGroup">
-                        <label>Mật khẩu *</label>
-                        <input type="password" id="userPassword" placeholder="Tối thiểu 6 ký tự" minlength="6">
-                    </div>
-                    <div class="form-group">
-                        <label>Họ tên *</label>
-                        <input type="text" id="userFullName" required="" placeholder="VD: Nguyễn Văn A">
-                    </div>
-                    <div class="form-group">
-                        <label>Vai trò *</label>
-                        <select id="userRole" required="">
-                            <option value="user">User - Chỉ xem</option>
-                            <option value="manager">Manager - Quản lý</option>
-                            <option value="admin">Admin - Toàn quyền</option>
-                        </select>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="closeModal('userModal')">Hủy</button>
-<button type="submit" form="userForm" class="btn btn-success">💾 Lưu</button></div>
-        </div>
-    </div>
-
-    <!-- Change Password Modal -->
-    <div id="changePasswordModal" class="modal">
-        <div class="modal-content modal-sm">
-            <div class="modal-header">
-                <h2>🔑 Đổi Mật Khẩu</h2>
-<button class="modal-close" onclick="closeModal('changePasswordModal')">×</button>
-            </div>
-            <div class="modal-body">
-                <form id="changePasswordForm" onsubmit="handleChangePassword(event)">
-                    <div class="form-group">
-                        <label>Mật khẩu hiện tại *</label>
-                        <div class="input-wrapper">
-                            <input type="password" id="currentPassword" required="" placeholder="Nhập mật khẩu hiện tại" style="padding-right: 45px;">
-                            <button type="button" class="password-toggle" onclick="togglePasswordField('currentPassword', this)">👁️</button>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Mật khẩu mới *</label>
-                        <div class="input-wrapper">
-                            <input type="password" id="newPassword" required="" placeholder="Tối thiểu 6 ký tự" minlength="6" style="padding-right: 45px;">
-                            <button type="button" class="password-toggle" onclick="togglePasswordField('newPassword', this)">👁️</button>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Xác nhận mật khẩu mới *</label>
-                        <div class="input-wrapper">
-                            <input type="password" id="confirmPassword" required="" placeholder="Nhập lại mật khẩu mới" style="padding-right: 45px;">
-                            <button type="button" class="password-toggle" onclick="togglePasswordField('confirmPassword', this)">👁️</button>
-                        </div>
-                    </div>
-
-                </form>
-            </div>
-            <div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="closeModal('changePasswordModal')">Hủy</button>
-<button type="submit" form="changePasswordForm" class="btn btn-success">💾 Đổi mật khẩu</button></div>
-        </div>
-    </div>
-
-    <!-- Force Change Password Modal (Bắt buộc đổi mật khẩu) -->
-    <div id="forceChangePasswordModal" class="modal">
-        <div class="modal-content modal-sm">
-            <div class="modal-header" style="background: #FEF5E7; border-bottom-color: #F39C12;">
-                <h2 style="color: #D68910;">🔐 Bắt Buộc Đổi Mật Khẩu</h2>
-                <!-- Không có nút đóng - bắt buộc phải đổi -->
-            </div>
-            <div class="modal-body">
-                <div style="background: #FEF9E7; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #F39C12;">
-                    <p style="margin: 0; color: #9A7B0A; font-size: 14px;">
-                        <strong>⚠️ Thông báo bảo mật:</strong>
-<br>
-                        Hệ thống đã nâng cấp bảo mật. Anh/Chị cần đổi mật khẩu mới để tiếp tục sử dụng.
-                    </p>
-                </div>
-                <form id="forceChangePasswordForm" onsubmit="handleForceChangePassword(event)">
-                    <div class="form-group">
-                        <label>Mật khẩu mới *</label>
-                        <input type="password" id="forceNewPassword" required="" placeholder="Tối thiểu 6 ký tự" minlength="6">
-                    </div>
-                    <div class="form-group">
-                        <label>Xác nhận mật khẩu mới *</label>
-                        <input type="password" id="forceConfirmPassword" required="" placeholder="Nhập lại mật khẩu mới">
-                    </div>
-                    <div id="forcePasswordError" style="color: #E74C3C; font-size: 13px; margin-bottom: 15px; display: none;"></div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="submit" form="forceChangePasswordForm" class="btn btn-warning">🔐 Đổi Mật Khẩu
-                    Ngay</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Teacher Modal -->
-    <div id="teacherModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="teacherModalTitle">👨‍🏫 Thêm Giáo Viên</h2>
-                <button class="modal-close" onclick="closeModal('teacherModal')">×</button>
-            </div>
-            <div class="modal-body">
-                <form id="teacherForm" onsubmit="saveTeacher(event)">
-                    <input type="hidden" id="editTeacherId">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Họ tên *</label>
-                            <input type="text" id="teacherFullName" required="" placeholder="VD: Nguyễn Văn A">
-                        </div>
-                        <div class="form-group">
-                            <label>Số điện thoại *</label>
-                            <input type="tel" id="teacherPhone" required="" placeholder="VD: 0901234567">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" id="teacherEmail" placeholder="VD: email@example.com">
-                    </div>
-                    <div class="form-group">
-                        <label>Môn dạy *</label>
-                        <div class="checkbox-group" id="teacherSubjectsCheckboxes"></div>
-                    </div>
-                    <div class="form-group">
-                        <label>Loại lương *</label>
-                        <select id="teacherSalaryType" required="" onchange="toggleSalaryFields()">
-                            <option value="per_session">💵 Theo buổi dạy</option>
-                            <option value="fixed">💰 Lương cố định/tháng</option>
-                            <option value="both">💳 Cả hai (Cố định + Theo buổi)</option>
-                        </select>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group" id="fixedSalaryGroup" style="display: none;">
-                            <label>Lương cố định/tháng</label>
-                            <input type="text" id="teacherFixedSalary" placeholder="VD: 5,000,000" oninput="formatCurrencyInput(this)">
-                        </div>
-                        <div class="form-group" id="perSessionGroup">
-                            <label>Tiền/buổi dạy</label>
-                            <input type="text" id="teacherPerSession" placeholder="VD: 200,000" oninput="formatCurrencyInput(this)">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Ghi chú</label>
-                        <textarea id="teacherNotes" rows="2" placeholder="Ghi chú thêm..."></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('teacherModal')">Hủy</button>
-                <button type="submit" form="teacherForm" class="btn btn-success">💾 Lưu</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- View Teacher Modal -->
-    <div id="viewTeacherModal" class="modal">
-        <div class="modal-content modal-lg">
-            <div class="modal-header">
-                <h2>👨‍🏫 Chi tiết Giáo viên</h2>
-                <button class="modal-close" onclick="closeModal('viewTeacherModal')">×</button>
-            </div>
-            <div class="modal-body" id="viewTeacherContent"></div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal('viewTeacherModal')">Đóng</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Class Modal -->
-    <div id="classModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="classModalTitle">📚 Thêm Lớp Học</h2>
-                <button class="modal-close" onclick="closeModal('classModal')">×</button>
-            </div>
-            <div class="modal-body">
-                <form id="classForm" onsubmit="saveClass(event)">
-                    <input type="hidden" id="editClassId">
-                    <div class="form-group">
-                        <label>Tên lớp *</label>
-                        <input type="text" id="className" required="" placeholder="VD: Cờ Vua - Lớp A1">
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Môn học *</label>
-                            <select id="classSubject" required="" onchange="filterTeachersBySubject()">
-                                <option value="">-- Chọn môn học --</option>
+                            <label for="interestedCourse">Khóa học quan tâm</label>
+                            <select id="interestedCourse" name="interestedCourse">
+                                <option value="">-- Chọn khóa học --</option>
+                                <!-- Will be populated dynamically -->
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Giáo viên</label>
-                            <select id="classTeacher">
-                                <option value="">-- Chọn giáo viên --</option>
-                            </select>
+                            <label for="message">Lời nhắn</label>
+                            <textarea id="message" name="message" rows="4"></textarea>
                         </div>
+                        <button type="submit" class="btn btn-primary btn-large">
+                            <i class="fas fa-paper-plane"></i> Gửi đăng ký
+                        </button>
+                    </form>
+                    <div id="formSuccess" class="form-message success" style="display: none;">
+                        <i class="fas fa-check-circle"></i>
+                        <h4>Đăng ký thành công!</h4>
+                        <p>Cảm ơn bạn đã quan tâm đến SKILLUP CENTER. Chúng tôi sẽ liên hệ với bạn trong thời gian sớm nhất.</p>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Loại lớp *</label>
-                            <select id="classType" required="" onchange="toggleMaxStudents()">
-                                <option value="group">👥 Lớp nhóm</option>
-                                <option value="1on1">👤 1 kèm 1</option>
-                            </select>
-                        </div>
-                        <div class="form-group" id="maxStudentsGroup">
-                            <label>Sĩ số tối đa *</label>
-                            <input type="number" id="classMaxStudents" required="" min="1" max="30" value="10">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Trạng thái</label>
-                        <select id="classStatus">
-                            <option value="new">🆕 Lớp mới</option>
-                            <option value="active">🟢 Đang học</option>
-                            <option value="completed">✅ Hoàn thành</option>
-                            <option value="cancelled">❌ Đã hủy</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Ghi chú</label>
-                        <textarea id="classNotes" rows="2" placeholder="Ghi chú thêm..."></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('classModal')">Hủy</button>
-                <button type="submit" form="classForm" class="btn btn-success">💾 Lưu</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- View Class Modal -->
-    <div id="viewClassModal" class="modal">
-        <div class="modal-content modal-lg">
-            <div class="modal-header">
-                <h2>📚 Chi tiết Lớp học</h2>
-                <button class="modal-close" onclick="closeModal('viewClassModal')">×</button>
-            </div>
-            <div class="modal-body" id="viewClassContent"></div>
-            <div class="modal-footer">
-                <button class="btn btn-info" onclick="openScheduleModal()">📅 Thêm ca học</button>
-                <button class="btn btn-success" onclick="openAssignStudentModal()">👤 Thêm học viên</button>
-                <button class="btn btn-secondary" onclick="closeModal('viewClassModal')">Đóng</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Schedule Modal (Thêm ca học) -->
-    <div id="scheduleModal" class="modal">
-        <div class="modal-content modal-sm">
-            <div class="modal-header">
-                <h2>📅 Thêm Ca Học</h2>
-                <button class="modal-close" onclick="closeModal('scheduleModal')">×</button>
-            </div>
-            <div class="modal-body">
-                <form id="scheduleForm" onsubmit="saveSchedule(event)">
-                    <input type="hidden" id="scheduleClassId">
-                    <input type="hidden" id="editScheduleId">
-                    <div class="form-group">
-                        <label>Ngày trong tuần *</label>
-                        <select id="scheduleDayOfWeek" required="">
-                            <option value="1">Thứ 2</option>
-                            <option value="2">Thứ 3</option>
-                            <option value="3">Thứ 4</option>
-                            <option value="4">Thứ 5</option>
-                            <option value="5">Thứ 6</option>
-                            <option value="6">Thứ 7</option>
-                            <option value="7">Chủ nhật</option>
-                        </select>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Giờ bắt đầu *</label>
-                            <input type="time" id="scheduleStartTime" required="" value="08:30">
-                        </div>
-                        <div class="form-group">
-                            <label>Giờ kết thúc *</label>
-                            <input type="time" id="scheduleEndTime" required="" value="10:00">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Phòng học</label>
-                        <select id="scheduleRoom">
-                            <option value="">-- Chọn phòng --</option>
-                        </select>
-                    </div>
-
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('scheduleModal')">Hủy</button>
-                <button type="submit" form="scheduleForm" class="btn btn-success">💾 Lưu</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- View Attendance Detail Modal - CẬP NHẬT -->
-    <div id="viewAttendanceModal" class="modal">
-        <div class="modal-content modal-lg">
-            <div class="modal-header">
-                <h2>📋 Chi tiết điểm danh</h2>
-                <button class="modal-close" onclick="closeModal('viewAttendanceModal')">×</button>
-            </div>
-            <div class="modal-body" id="viewAttendanceContent"></div>
-            <div class="modal-footer">
-                <button class="btn btn-warning" id="btnEditAttendanceBatch" onclick="enableEditAttendanceMode()">✏️ Sửa
-                    điểm danh</button>
-                <button class="btn btn-success d-none" id="btnSaveAttendanceBatch" onclick="saveEditedAttendance()">💾
-                    Lưu thay đổi</button>
-                <button class="btn btn-secondary d-none" id="btnCancelEditAttendance" onclick="cancelEditAttendance()">❌
-                    Hủy sửa</button>
-                <button class="btn btn-secondary" id="btnCloseAttendanceDetail" onclick="closeModal('viewAttendanceModal')">Đóng</button>
-            </div>
-        </div>
-    </div>
-    <!-- Confirm Change Attendance Status Modal -->
-    <div id="confirmAttendanceChangeModal" class="modal">
-        <div class="modal-content modal-sm">
-            <div class="modal-header">
-                <h2 id="confirmAttendanceChangeTitle">⚠️ Xác nhận thay đổi</h2>
-                <button class="modal-close" onclick="closeModal('confirmAttendanceChangeModal')">×</button>
-            </div>
-            <div class="modal-body">
-                <div id="confirmAttendanceChangeContent"></div>
-                <input type="hidden" id="confirmAttendanceId">
-                <input type="hidden" id="confirmAttendanceOldStatus">
-                <input type="hidden" id="confirmAttendanceNewStatus">
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal('confirmAttendanceChangeModal')">Hủy</button>
-                <button class="btn btn-warning" id="btnConfirmAttendanceChange" onclick="executeAttendanceStatusChange()">✅ Xác nhận</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Schedule Makeup Modal -->
-    <div id="scheduleMakeupModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>📅 Xếp lịch học bù</h2>
-                <button class="modal-close" onclick="closeModal('scheduleMakeupModal')">×</button>
-            </div>
-            <div class="modal-body">
-                <form id="scheduleMakeupForm" onsubmit="saveMakeupSchedule(event)">
-                    <input type="hidden" id="makeupRequestId">
-
-                    <div class="quick-view-section">
-                        <h4>📋 Thông tin yêu cầu</h4>
-                        <div class="quick-view-row">
-                            <span class="quick-view-label">Học viên:</span>
-                            <span class="quick-view-value" id="makeupStudentName"></span>
-                        </div>
-                        <div class="quick-view-row">
-                            <span class="quick-view-label">Lớp gốc:</span>
-                            <span class="quick-view-value" id="makeupOriginalClass"></span>
-                        </div>
-                        <div class="quick-view-row">
-                            <span class="quick-view-label">Ngày nghỉ:</span>
-                            <span class="quick-view-value" id="makeupOriginalDate"></span>
-                        </div>
-                        <div class="quick-view-row">
-                            <span class="quick-view-label">Hạn học bù:</span>
-                            <span class="quick-view-value" id="makeupExpiryDate"></span>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Chọn lớp học bù *</label>
-                        <select id="makeupClassSelect" required="" onchange="loadMakeupSchedules()">
-                            <option value="">-- Chọn lớp --</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Chọn ngày học bù *</label>
-                        <input type="date" id="makeupDate" required="" onchange="loadMakeupSchedules()">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Chọn ca học *</label>
-                        <select id="makeupScheduleSelect" required="">
-                            <option value="">-- Chọn ca học --</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Ghi chú</label>
-                        <textarea id="makeupNotes" rows="2" placeholder="Ghi chú thêm..."></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('scheduleMakeupModal')">Hủy</button>
-                <button type="submit" form="scheduleMakeupForm" class="btn btn-success">📅 Xếp lịch</button>
-            </div>
-        </div>
-    </div>
-    <!-- Debt Payment Modal -->
-    <div id="debtPaymentModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>💳 Thanh Toán Công Nợ</h2>
-                <button class="modal-close" onclick="closeModal('debtPaymentModal')">×</button>
-            </div>
-            <div class="modal-body">
-                <form id="debtPaymentForm" onsubmit="saveDebtPayment(event)">
-                    <input type="hidden" id="paymentRegistrationId">
-
-                    <div class="quick-view-section">
-                        <h4>📋 Thông tin công nợ</h4>
-                        <div class="quick-view-row">
-                            <span class="quick-view-label">Học viên:</span>
-                            <span class="quick-view-value" id="paymentStudentName"></span>
-                        </div>
-                        <div class="quick-view-row">
-                            <span class="quick-view-label">Mã phiếu ĐK:</span>
-                            <span class="quick-view-value" id="paymentRegCode"></span>
-                        </div>
-                        <div class="quick-view-row">
-                            <span class="quick-view-label">Tổng tiền:</span>
-                            <span class="quick-view-value" id="paymentTotalAmount"></span>
-                        </div>
-                        <div class="quick-view-row">
-                            <span class="quick-view-label">Đã đóng:</span>
-                            <span class="quick-view-value text-success" id="paymentPaidAmount"></span>
-                        </div>
-                        <div class="quick-view-row">
-                            <span class="quick-view-label">Còn nợ:</span>
-                            <span class="quick-view-value text-danger fw-700" id="paymentDebtAmount"></span>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Số tiền thanh toán *</label>
-                        <input type="text" id="paymentAmount" required="" placeholder="VD: 1,000,000" oninput="formatCurrencyInput(this); calculateRemainingDebt()">
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Loại biên lai *</label>
-                            <select id="paymentReceiptType" required="">
-                                <option value="Biên Lai Điện Tử">💳 Biên Lai Điện Tử</option>
-                                <option value="Phiếu Thu">💵 Phiếu Thu</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Ngày thanh toán *</label>
-                            <input type="date" id="paymentDate" required="">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Ghi chú</label>
-                        <textarea id="paymentNotes" rows="2" placeholder="Ghi chú thêm..."></textarea>
-                    </div>
-
-                    <div id="paymentPreview" style="background: #E8F8F0; padding: 12px; border-radius: 8px; margin-top: 10px;">
-                        <p style="margin: 0; font-size: 13px;">
-                            Sau khi thanh toán, còn nợ: <strong id="paymentRemainingPreview" class="text-success">0
-                                ₫</strong>
-                        </p>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('debtPaymentModal')">Hủy</button>
-                <button type="submit" form="debtPaymentForm" class="btn btn-success">💰 Thanh toán</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Debt Detail Modal -->
-    <div id="debtDetailModal" class="modal">
-        <div class="modal-content modal-lg">
-            <div class="modal-header">
-                <h2>📋 Chi Tiết Công Nợ</h2>
-                <button class="modal-close" onclick="closeModal('debtDetailModal')">×</button>
-            </div>
-            <div class="modal-body" id="debtDetailContent"></div>
-            <div class="modal-footer">
-                <button class="btn btn-success" id="debtDetailPayBtn" onclick="openPaymentFromDetail()">💰 Thanh
-                    toán</button>
-                <button class="btn btn-secondary" onclick="closeModal('debtDetailModal')">Đóng</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Adjust Debt Modal -->
-    <div id="adjustDebtModal" class="modal">
-        <div class="modal-content modal-sm">
-            <div class="modal-header">
-                <h2>✏️ Điều Chỉnh Công Nợ</h2>
-                <button class="modal-close" onclick="closeModal('adjustDebtModal')">×</button>
-            </div>
-            <div class="modal-body">
-                <form id="adjustDebtForm" onsubmit="saveAdjustedDebt(event)">
-                    <input type="hidden" id="adjustRegistrationId">
-
-                    <div class="quick-view-section">
-                        <h4>📋 Thông tin hiện tại</h4>
-                        <div class="quick-view-row">
-                            <span class="quick-view-label">Học viên:</span>
-                            <span class="quick-view-value" id="adjustStudentName"></span>
-                        </div>
-                        <div class="quick-view-row">
-                            <span class="quick-view-label">Tổng tiền gốc:</span>
-                            <span class="quick-view-value" id="adjustOriginalAmount"></span>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Tổng tiền mới (sau điều chỉnh) *</label>
-                        <input type="text" id="adjustNewAmount" required="" placeholder="VD: 2,000,000" oninput="formatCurrencyInput(this)">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Lý do điều chỉnh *</label>
-                        <textarea id="adjustReason" rows="2" required="" placeholder="VD: Giảm học phí đặc biệt..."></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('adjustDebtModal')">Hủy</button>
-                <button type="submit" form="adjustDebtForm" class="btn btn-warning">✏️ Điều chỉnh</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Create Makeup Request Modal -->
-    <div id="createMakeupModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>➕ Tạo Yêu Cầu Học Bù</h2>
-                <button class="modal-close" onclick="closeModal('createMakeupModal')">×</button>
-            </div>
-            <div class="modal-body">
-                <form id="createMakeupForm" onsubmit="saveNewMakeupRequest(event)">
-                    <div class="form-group">
-                        <label>Chọn lớp *</label>
-                        <select id="newMakeupClassSelect" required="" onchange="loadStudentsForMakeup()">
-                            <option value="">-- Chọn lớp học --</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Chọn học viên *</label>
-                        <select id="newMakeupStudentSelect" required="">
-                            <option value="">-- Chọn học viên --</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Ngày dự kiến nghỉ *</label>
-                        <input type="date" id="newMakeupAbsentDate" required="">
-                    </div>
-                    <div class="form-group">
-                        <label>Lý do nghỉ</label>
-                        <textarea id="newMakeupReason" rows="2" placeholder="VD: Bận việc gia đình, đi du lịch..."></textarea>
-                    </div>
-                    <div style="background: #FEF9E7; padding: 12px; border-radius: 8px; margin-top: 15px;">
-                        <p style="margin: 0; color: #9A7B0A; font-size: 13px;">
-                            ⚠️ <strong>Lưu ý:</strong> Yêu cầu học bù này sẽ được tạo trước. Khi đến ngày nghỉ, anh/chị
-                            vẫn cần điểm danh "Có phép" để trừ buổi chính thức.
-                        </p>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('createMakeupModal')">Hủy</button>
-                <button type="submit" form="createMakeupForm" class="btn btn-success">➕ Tạo yêu cầu</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Confirm Makeup Completed Modal -->
-    <div id="confirmMakeupModal" class="modal">
-        <div class="modal-content modal-sm">
-            <div class="modal-header">
-                <h2>✅ Xác nhận học bù</h2>
-                <button class="modal-close" onclick="closeModal('confirmMakeupModal')">×</button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="confirmMakeupId">
-                <div class="quick-view-section">
-                    <p>Xác nhận học viên <strong id="confirmMakeupStudent"></strong> đã hoàn thành buổi học bù?</p>
-                    <div class="quick-view-row">
-                        <span class="quick-view-label">Lớp học bù:</span>
-                        <span class="quick-view-value" id="confirmMakeupClass"></span>
-                    </div>
-                    <div class="quick-view-row">
-                        <span class="quick-view-label">Ngày học bù:</span>
-                        <span class="quick-view-value" id="confirmMakeupDate"></span>
+                    <div id="formError" class="form-message error" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <h4>Có lỗi xảy ra!</h4>
+                        <p>Vui lòng thử lại sau hoặc liên hệ trực tiếp qua hotline.</p>
                     </div>
                 </div>
-                <div style="background: #E8F8F0; padding: 12px; border-radius: 8px; margin-top: 15px;">
-                    <p style="margin: 0; color: #27AE60; font-size: 13px;">
-                        ✅ Sau khi xác nhận, buổi học bù sẽ được ghi nhận. Số buổi còn lại của học viên sẽ <strong>KHÔNG
-                            bị trừ</strong>.
-                    </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-col">
+                    <h3><i class="fas fa-graduation-cap"></i> SKILLUP CENTER</h3>
+                    <p>Trung tâm Phát triển Giáo dục Toàn diện cho Trẻ em</p>
+                    <p class="footer-slogan">"Mỗi đứa trẻ đều có tài năng riêng, nhiệm vụ của chúng tôi là giúp các em khám phá và phát triển nó"</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Liên kết nhanh</h4>
+                    <ul>
+                        <li><a href="#home">Trang chủ</a></li>
+                        <li><a href="#about">Giới thiệu</a></li>
+                        <li><a href="#courses">Khóa học</a></li>
+                        <li><a href="#blog">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Chính sách</h4>
+                    <ul>
+                        <li><a href="#">Điều khoản sử dụng</a></li>
+                        <li><a href="#">Chính sách bảo mật</a></li>
+                        <li><a href="#">Quy định chung</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Theo dõi chúng tôi</h4>
+                    <div class="social-links">
+                        <a href="https://www.facebook.com/trungtamkynangvanghethuatskillup"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                    <p style="margin-top: 1rem;">Hotline: <strong>0888 940 800</strong></p>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('confirmMakeupModal')">Hủy</button>
-                <button type="button" class="btn btn-success" onclick="completeMakeupRequest()">✅ Xác nhận hoàn
-                    thành</button>
+            <div class="footer-bottom">
+                <p>&copy; 2024 SKILLUP CENTER. All rights reserved. Developed with <i class="fas fa-heart"></i></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to Top Button -->
+    <button id="backToTop" class="back-to-top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- Course Detail Modal -->
+    <div id="courseModal" class="modal">
+        <div class="modal-content modal-large">
+            <span class="close" id="closeCourseModal">&times;</span>
+            <div id="courseModalContent">
+                <!-- Course detail will be loaded here -->
             </div>
         </div>
     </div>
 
-    <!-- Room Modal (Thêm/Sửa phòng học) -->
-    <div id="roomModal" class="modal">
-        <div class="modal-content modal-sm">
-            <div class="modal-header">
-                <h2 id="roomModalTitle">🏫 Thêm Phòng Học</h2>
-                <button class="modal-close" onclick="closeModal('roomModal')">×</button>
-            </div>
-            <div class="modal-body">
-                <form id="roomForm" onsubmit="saveRoom(event)">
-                    <input type="hidden" id="editRoomId">
-                    <div class="form-group">
-                        <label>Tên phòng *</label>
-                        <input type="text" id="roomName" required="" placeholder="VD: Phòng A1, Phòng VIP">
-                    </div>
-                    <div class="form-group">
-                        <label>Sức chứa (người) *</label>
-                        <input type="number" id="roomCapacity" required="" min="1" max="100" placeholder="VD: 15">
-                    </div>
-                    <div class="form-group">
-                        <label>Trang thiết bị</label>
-                        <input type="text" id="roomEquipment" placeholder="VD: Máy chiếu, Điều hòa, Bảng trắng">
-                    </div>
-                    <div class="form-group">
-                        <label>Trạng thái *</label>
-                        <select id="roomStatus" required="">
-                            <option value="active">🟢 Đang hoạt động</option>
-                            <option value="maintenance">🟠 Đang bảo trì</option>
-                            <option value="inactive">⚫ Ngưng sử dụng</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Ghi chú</label>
-                        <textarea id="roomNotes" rows="2" placeholder="Ghi chú thêm..."></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('roomModal')">Hủy</button>
-                <button type="submit" form="roomForm" class="btn btn-success">💾 Lưu</button>
+    <!-- Blog Detail Modal -->
+    <div id="blogModal" class="modal">
+        <div class="modal-content modal-large">
+            <span class="close" id="closeBlogModal">&times;</span>
+            <div id="blogModalContent">
+                <!-- Blog detail will be loaded here -->
             </div>
         </div>
     </div>
 
-    <!-- Assign Student to Class Modal -->
-    <div id="assignStudentModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>👤 Thêm Học Viên Vào Lớp</h2>
-                <button class="modal-close" onclick="closeModal('assignStudentModal')">×</button>
-            </div>
-            <div class="modal-body">
-                <form id="assignStudentForm" onsubmit="assignStudentToClass(event)">
-                    <input type="hidden" id="assignClassId">
-                    <div class="form-group">
-                        <label>Chọn Phiếu đăng ký *</label>
-                        <select id="assignRegistrationId" required="" onchange="showRegistrationInfo()">
-                            <option value="">-- Chọn phiếu ĐK chưa gán lớp --</option>
-                        </select>
-                    </div>
-                    <div id="assignRegistrationInfo" style="display: none;">
-                        <div class="quick-view-section">
-                            <h4>📋 Thông tin Phiếu ĐK</h4>
-                            <div class="quick-view-row">
-                                <span class="quick-view-label">Học viên:</span>
-                                <span class="quick-view-value" id="assignStudentName"></span>
-                            </div>
-                            <div class="quick-view-row">
-                                <span class="quick-view-label">Môn học:</span>
-                                <span class="quick-view-value" id="assignSubject"></span>
-                            </div>
-                            <div class="quick-view-row">
-                                <span class="quick-view-label">Số buổi:</span>
-                                <span class="quick-view-value" id="assignTotalSessions"></span>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('assignStudentModal')">Hủy</button>
-                <button type="submit" form="assignStudentForm" class="btn btn-success">✅ Gán vào lớp</button>
-            </div>
-        </div>
+    <!-- Gallery Lightbox -->
+    <div id="galleryLightbox" class="lightbox">
+        <span class="lightbox-close">&times;</span>
+        <img class="lightbox-content" id="lightboxImg">
+        <button class="lightbox-nav lightbox-prev"><i class="fas fa-chevron-left"></i></button>
+        <button class="lightbox-nav lightbox-next"><i class="fas fa-chevron-right"></i></button>
+        <div class="lightbox-caption"></div>
     </div>
 
-    <!-- Reset Password Modal (Admin reset cho user) -->
-    <div id="resetPasswordModal" class="modal">
-        <div class="modal-content modal-sm">
-            <div class="modal-header">
-                <h2>🔄 Reset Mật Khẩu</h2>
-<button class="modal-close" onclick="closeModal('resetPasswordModal')">×</button>
-            </div>
-            <div class="modal-body">
-                <form id="resetPasswordForm" onsubmit="handleResetPassword(event)">
-                    <input type="hidden" id="resetPasswordUserId">
-                    <p class="mb-15">Reset mật khẩu cho tài khoản: <strong id="resetPasswordUsername"></strong></p>
-                    <div class="form-group">
-                        <label>Mật khẩu mới *</label>
-                        <div class="input-wrapper">
-                            <input type="password" id="resetNewPassword" required="" placeholder="Tối thiểu 6 ký tự" minlength="6" style="padding-right: 45px;">
-                            <button type="button" class="password-toggle" onclick="togglePasswordField('resetNewPassword', this)">👁️</button>
-                        </div>
-                    </div>
-
-                </form>
-            </div>
-            <div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="closeModal('resetPasswordModal')">Hủy</button>
-<button type="submit" form="resetPasswordForm" class="btn btn-warning">🔄 Reset</button></div>
-        </div>
-    </div>
-
-    <!-- Notification -->
-    <div id="notification" class="notification"></div>
-
-    <!-- ============================================================
-         📜 JAVASCRIPT - PHẦN 2/2
-         ============================================================ -->
-    
-
-    <!-- JavaScript -->
-    <script src="js/app.js"></script>
-</body></html>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="script.js"></script>
+</body>
+</html>
