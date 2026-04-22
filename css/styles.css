@@ -2544,3 +2544,62 @@ tbody tr:last-child td {
 #attendanceDetailTable tbody tr:hover {
             background: var(--bg-light);
         }
+/* ============================================================
+   SEARCHABLE DROPDOWN
+   ============================================================ */
+.searchable-select-wrapper {
+    position: relative;
+}
+.searchable-select-wrapper .search-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 14px;
+    transition: border-color 0.2s;
+    background: white;
+}
+.searchable-select-wrapper .search-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+.searchable-select-wrapper .search-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 2px solid var(--primary-color);
+    border-top: none;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 2100;
+    display: none;
+    box-shadow: var(--shadow-md);
+}
+.searchable-select-wrapper .search-dropdown.show {
+    display: block;
+}
+.searchable-select-wrapper .search-dropdown-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.15s;
+}
+.searchable-select-wrapper .search-dropdown-item:hover {
+    background: var(--primary-lighter);
+    color: var(--primary-dark);
+}
+.searchable-select-wrapper .search-dropdown-item.selected {
+    background: var(--primary-color);
+    color: white;
+}
+.searchable-select-wrapper .search-dropdown-empty {
+    padding: 10px 14px;
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: 13px;
+}
+
