@@ -978,7 +978,7 @@
             if (!confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} tài khoản "${user.username}"?`)) return;
 
             user.status = user.status === 'active' ? 'locked' : 'active';
-            saveData('users', users);
+            saveUsersEncrypted(users);
             renderUsersTable();
             showNotification(`Đã ${action} tài khoản!`, 'success');
         }
@@ -991,7 +991,7 @@
             if (!confirm(`Xóa tài khoản "${user.username}"?`)) return;
 
             users = users.filter(u => u.id !== id);
-            saveData('users', users);
+            saveUsersEncrypted(users);
             renderUsersTable();
             showNotification('Đã xóa tài khoản!', 'success');
         }
@@ -1394,6 +1394,10 @@
         }
 
         function renderRevenueChart() {
+            // Đầu hàm renderRevenueChart, thêm:
+            setTimeout(() => {
+                // toàn bộ code hiện tại của hàm
+            }, 100);
             const months = [];
             const now = new Date();
             for (let i = 5; i >= 0; i--) {
@@ -2124,11 +2128,110 @@
             openModal('registrationModal');
         }
 
+        // ===== SEARCHABLE SELECT - Gõ text để lọc dropdown =====
+        function makeSelectSearchable(selectId, options, onSelectCallback) {
+            const originalSelect = document.getElementById(selectId);
+            if (!originalSelect) return;
+
+            // Kiểm tra nếu đã khởi tạo rồi thì cập nhật lại
+            const existingWrapper = originalSelect.parentElement;
+            if (existingWrapper && existingWrapper.classList.contains('searchable-select-wrapper')) {
+                // Đã có wrapper, cập nhật data
+                existingWrapper._searchOptions = options;
+                existingWrapper._onSelect = onSelectCallback;
+                return;
+            }
+
+            // Ẩn select gốc
+            originalSelect.style.display = 'none';
+
+            // Tạo wrapper
+            const wrapper = document.createElement('div');
+            wrapper.className = 'searchable-select-wrapper';
+            wrapper._searchOptions = options;
+            wrapper._onSelect = onSelectCallback;
+
+            // Tạo ô input tìm kiếm
+            const searchInput = document.createElement('input');
+            searchInput.type = 'text';
+            searchInput.className = 'search-input';
+            searchInput.placeholder = '🔍 Gõ tên để tìm học viên...';
+            searchInput.autocomplete = 'off';
+
+            // Tạo dropdown kết quả
+            const dropdown = document.createElement('div');
+            dropdown.className = 'search-dropdown';
+
+            // Chèn vào DOM
+            originalSelect.parentNode.insertBefore(wrapper, originalSelect);
+            wrapper.appendChild(searchInput);
+            wrapper.appendChild(dropdown);
+            wrapper.appendChild(originalSelect);
+
+            // Hàm render danh sách
+            function renderDropdown(filter) {
+                const opts = wrapper._searchOptions || [];
+                const keyword = (filter || '').toLowerCase().trim();
+                const filtered = keyword ? opts.filter(o => o.label.toLowerCase().includes(keyword)) : opts;
+
+                if (filtered.length === 0) {
+                    dropdown.innerHTML = '<div class="search-dropdown-empty">Không tìm thấy học viên</div>';
+                } else {
+                    dropdown.innerHTML = filtered.map(o =>
+                        `<div class="search-dropdown-item" data-value="${o.value}">${o.label}</div>`
+                    ).join('');
+                }
+                dropdown.classList.add('show');
+            }
+
+            // Sự kiện gõ text
+            searchInput.addEventListener('input', function() {
+                renderDropdown(this.value);
+            });
+
+            // Sự kiện focus - hiện danh sách
+            searchInput.addEventListener('focus', function() {
+                renderDropdown(this.value);
+            });
+
+            // Sự kiện click chọn item
+            dropdown.addEventListener('click', function(e) {
+                const item = e.target.closest('.search-dropdown-item');
+                if (!item) return;
+                const val = item.dataset.value;
+                const label = item.textContent;
+                searchInput.value = label;
+                originalSelect.value = val;
+                dropdown.classList.remove('show');
+                if (wrapper._onSelect) wrapper._onSelect(val);
+            });
+
+            // Đóng dropdown khi click bên ngoài
+            document.addEventListener('click', function(e) {
+                if (!wrapper.contains(e.target)) {
+                    dropdown.classList.remove('show');
+                }
+            });
+
+            // Nếu select đã có giá trị, hiện tên
+            if (originalSelect.value) {
+                const found = options.find(o => o.value === originalSelect.value);
+                if (found) searchInput.value = found.label;
+            }
+        }
+
+
 
         function populateRegStudentDropdown() {
-            const eligible = students.filter(s => s.status === 'Chờ Đăng Ký');
-            document.getElementById('regStudentSelect').innerHTML = '<option value="">-- Chọn học viên --</option>' +
+            const eligible = students.filter(s => s.status === 'Chờ Đăng Ký' || s.status === 'Đã Đăng Ký');
+            const select = document.getElementById('regStudentSelect');
+            select.innerHTML = '<option value="">-- Chọn học viên --</option>' +
                 eligible.map(s => `<option value="${s.id}">${s.name} - ${s.parentPhone}</option>`).join('');
+            // Khởi tạo searchable
+            makeSelectSearchable('regStudentSelect', eligible.map(s => ({ value: s.id, label: s.name + ' - ' + s.parentPhone })), function(val) {
+                select.value = val;
+                onRegStudentChange();
+            });
         }
 
         function onRegStudentChange() {
@@ -2142,6 +2245,219 @@
         }
 
         // ===== LOAD GÓI HỌC PHÍ THEO MÔN - CẬP NHẬT =====
+        // ===== CHỌN LỚP & CA HỌC TRONG PHIẾU ĐK =====
+        function populateRegClassDropdown() {
+            const subjectName = document.getElementById('regSubject').value;
+            const classSelect = document.getElementById('regClassSelect');
+            const scheduleSelect = document.getElementById('regScheduleSelect');
+            if (!classSelect) return;
+
+            // Reset
+            classSelect.innerHTML = '<option value="">-- Chọn lớp (tùy chọn) --</option>';
+            scheduleSelect.innerHTML = '<option value="">-- Chọn ca học --</option>';
+
+            if (!subjectName) return;
+
+            // Tìm subject ID từ tên
+            const subject = subjects.find(s => s.name === subjectName);
+            if (!subject) return;
+
+            // Lọc lớp cùng môn và đang hoạt động
+            const matchClasses = classes.filter(c => c.subjectId === subject.id && (c.status === 'active' || c.status === 'new'));
+
+            matchClasses.forEach(c => {
+                const teacher = teachers.find(t => t.id === c.teacherId);
+                const studentCount = classStudents.filter(cs => cs.classId === c.id && cs.status === 'active').length;
+                const schedules = classSchedules.filter(s => s.classId === c.id && s.isActive);
+                const scheduleText = schedules.map(s => getDayShort(s.dayOfWeek) + ' ' + s.startTime + '-' + s.endTime).join(', ');
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.className + ' (' + (teacher ? teacher.fullName : 'Chưa có GV') + ') - ' + studentCount + '/' + c.maxStudents + ' - ' + (scheduleText || 'Chưa có lịch');
+                // Đánh dấu đầy
+                if (studentCount >= c.maxStudents) {
+                    opt.textContent += ' [ĐẦY]';
+                    opt.disabled = true;
+                }
+                classSelect.appendChild(opt);
+            });
+        }
+
+        function onRegClassChange() {
+            const classId = document.getElementById('regClassSelect').value;
+            const scheduleSelect = document.getElementById('regScheduleSelect');
+            scheduleSelect.innerHTML = '<option value="">-- Chọn ca học --</option>';
+
+            if (!classId) return;
+
+            const schedules = classSchedules.filter(s => s.classId === classId && s.isActive);
+            schedules.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = getDayName(s.dayOfWeek) + ' ' + s.startTime + ' - ' + s.endTime + (s.room ? ' (Phòng: ' + s.room + ')' : '');
+                scheduleSelect.appendChild(opt);
+            });
+        }
+
+        // ===== CHUYỂN LỚP =====
+        function openTransferClassModal(regId) {
+            const reg = registrations.find(r => r.id === regId);
+            if (!reg) return;
+
+            const student = students.find(s => s.id === reg.studentId);
+
+            // Tìm classStudent hiện tại
+            const currentCS = classStudents.find(cs => cs.registrationId === regId && cs.status === 'active');
+            let currentClass = null;
+            let completedSessions = 0;
+            let remainingSessions = 0;
+
+            if (currentCS) {
+                currentClass = classes.find(c => c.id === currentCS.classId);
+                completedSessions = currentCS.completedSessions || 0;
+                remainingSessions = currentCS.remainingSessions || 0;
+            }
+
+            // Điền thông tin
+            document.getElementById('transferClassStudentId').value = reg.studentId;
+            document.getElementById('transferRegId').value = regId;
+            document.getElementById('transferStudentName').textContent = student ? student.name : 'N/A';
+            document.getElementById('transferSubject').textContent = reg.subject;
+            document.getElementById('transferCurrentClass').textContent = currentClass ? currentClass.className : 'Chưa gán lớp';
+            document.getElementById('transferCompletedSessions').textContent = completedSessions + ' buổi';
+            document.getElementById('transferRemainingSessions').textContent = remainingSessions + ' buổi';
+
+            // Populate danh sách lớp mới (cùng môn, trừ lớp hiện tại)
+            const subject = subjects.find(s => s.name === reg.subject);
+            const newClassSelect = document.getElementById('transferNewClassSelect');
+            newClassSelect.innerHTML = '<option value="">-- Chọn lớp mới --</option>';
+
+            if (subject) {
+                const availableClasses = classes.filter(c => {
+                    if (c.subjectId !== subject.id) return false;
+                    if (c.status !== 'active' && c.status !== 'new') return false;
+                    if (currentCS && c.id === currentCS.classId) return false; // Bỏ lớp hiện tại
+                    return true;
+                });
+
+                availableClasses.forEach(c => {
+                    const teacher = teachers.find(t => t.id === c.teacherId);
+                    const count = classStudents.filter(cs => cs.classId === c.id && cs.status === 'active').length;
+                    const schedules = classSchedules.filter(s => s.classId === c.id && s.isActive);
+                    const scheduleText = schedules.map(s => getDayShort(s.dayOfWeek) + ' ' + s.startTime + '-' + s.endTime).join(', ');
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = c.className + ' (' + (teacher ? teacher.fullName : '') + ') - ' + count + '/' + c.maxStudents + ' - ' + (scheduleText || 'Chưa có lịch');
+                    if (count >= c.maxStudents) {
+                        opt.textContent += ' [ĐẦY]';
+                        opt.disabled = true;
+                    }
+                    newClassSelect.appendChild(opt);
+                });
+            }
+
+            document.getElementById('transferNewScheduleSelect').innerHTML = '<option value="">-- Ca học lớp mới --</option>';
+            document.getElementById('transferReason').value = '';
+
+            openModal('transferClassModal');
+        }
+
+        function onTransferClassChange() {
+            const classId = document.getElementById('transferNewClassSelect').value;
+            const scheduleSelect = document.getElementById('transferNewScheduleSelect');
+            scheduleSelect.innerHTML = '<option value="">-- Ca học lớp mới --</option>';
+
+            if (!classId) return;
+
+            const schedules = classSchedules.filter(s => s.classId === classId && s.isActive);
+            schedules.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = getDayName(s.dayOfWeek) + ' ' + s.startTime + ' - ' + s.endTime + (s.room ? ' (Phòng: ' + s.room + ')' : '');
+                scheduleSelect.appendChild(opt);
+            });
+        }
+
+        function saveTransferClass(event) {
+            event.preventDefault();
+
+            const regId = document.getElementById('transferRegId').value;
+            const newClassId = document.getElementById('transferNewClassSelect').value;
+            const reason = document.getElementById('transferReason').value.trim();
+
+            if (!newClassId) {
+                showNotification('Vui lòng chọn lớp mới!', 'error');
+                return;
+            }
+
+            const reg = registrations.find(r => r.id === regId);
+            if (!reg) return;
+
+            // Kiểm tra sức chứa lớp mới
+            const newClass = classes.find(c => c.id === newClassId);
+            const newClassCount = classStudents.filter(cs => cs.classId === newClassId && cs.status === 'active').length;
+            if (newClass && newClassCount >= newClass.maxStudents) {
+                showNotification('Lớp mới đã đầy!', 'error');
+                return;
+            }
+
+            // Tìm classStudent hiện tại
+            const currentCS = classStudents.find(cs => cs.registrationId === regId && cs.status === 'active');
+
+            let completedSessions = 0;
+            let remainingSessions = reg.totalSessions || 0;
+
+            if (currentCS) {
+                completedSessions = currentCS.completedSessions || 0;
+                remainingSessions = currentCS.remainingSessions || 0;
+
+                // Đánh dấu record cũ là transferred (không xóa để giữ lịch sử)
+                currentCS.status = 'transferred';
+                currentCS.transferredAt = new Date().toISOString();
+                currentCS.transferReason = reason;
+                currentCS.transferToClassId = newClassId;
+            }
+
+            // Tạo classStudent mới tại lớp mới, mang theo số buổi đã học
+            const newScheduleId = document.getElementById('transferNewScheduleSelect').value || null;
+            classStudents.push({
+                id: generateId(),
+                classId: newClassId,
+                studentId: reg.studentId,
+                registrationId: regId,
+                totalSessions: (currentCS ? currentCS.totalSessions : reg.totalSessions) || reg.totalSessions,
+                completedSessions: completedSessions, // Giữ nguyên số buổi đã học (cộng dồn)
+                remainingSessions: remainingSessions,
+                scheduleId: newScheduleId,
+                status: 'active',
+                enrolledAt: new Date().toISOString(),
+                transferredFrom: currentCS ? currentCS.classId : null,
+                transferHistory: currentCS ? [...(currentCS.transferHistory || []), {
+                    fromClassId: currentCS.classId,
+                    toClassId: newClassId,
+                    completedAtTransfer: completedSessions,
+                    date: new Date().toISOString(),
+                    reason: reason
+                }] : []
+            });
+
+            // Cập nhật registration với lớp mới
+            const regIndex = registrations.findIndex(r => r.id === regId);
+            if (regIndex !== -1) {
+                registrations[regIndex].classId = newClassId;
+                registrations[regIndex].scheduleId = newScheduleId;
+            }
+
+            saveData('classStudents', classStudents);
+            saveData('registrations', registrations);
+
+            closeModal('transferClassModal');
+            showNotification('✅ Chuyển lớp thành công! Số buổi đã học được giữ nguyên.', 'success');
+            renderRegistrationsTable();
+            renderClassesTable();
+        }
+
+
+
         function loadPackagesForSubject() {
             const subject = document.getElementById('regSubject').value;
             const packageSelect = document.getElementById('regPackage');
@@ -2169,8 +2485,13 @@
                 feeInput.value = '';
             }
 
-            calculateFinalAmount();
-        }
+                calculateFinalAmount();
+
+                // Auto-load danh sách lớp theo môn đã chọn
+                if (typeof populateRegClassDropdown === 'function') {
+                    populateRegClassDropdown();
+                }
+            }
 
 
         // ===== ÁP DỤNG GÓI HỌC PHÍ - CẬP NHẬT =====
@@ -2266,22 +2587,29 @@
             const notes = document.getElementById('regNotes').value.trim();
 
             // Tạo object dữ liệu
-            const regData = {
-                studentId,
-                studentName: student ? student.name : '',
-                parentName: student ? student.parentName : '',
-                parentPhone: student ? student.parentPhone : '',
-                subject: document.getElementById('regSubject').value,
-                packageId: packageId,
-                totalSessions: totalSessions,           // TRƯỜNG MỚI
-                startDate: startDate,                   // TRƯỜNG MỚI
-                tuitionFee: tuition,
-                promotionIds: selectedPromoIds,
-                discountAmount: discount,
-                finalAmount,
-                registrationDate: regDate,
-                notes: notes                            // TRƯỜNG MỚI
-            };
+                // Lấy lớp học & ca học nếu có chọn
+                const selectedClassId = document.getElementById('regClassSelect') ? document.getElementById('regClassSelect').value : '';
+                const selectedScheduleId = document.getElementById('regScheduleSelect') ? document.getElementById('regScheduleSelect').value : '';
+
+                const regData = {
+                    studentId,
+                    studentName: student ? student.name : '',
+                    parentName: student ? student.parentName : '',
+                    parentPhone: student ? student.parentPhone : '',
+                    subject: document.getElementById('regSubject').value,
+                    packageId: packageId,
+                    totalSessions: totalSessions,
+                    startDate: startDate,
+                    tuitionFee: tuition,
+                    promotionIds: selectedPromoIds,
+                    discountAmount: discount,
+                    finalAmount,
+                    registrationDate: regDate,
+                    notes: notes,
+                    classId: selectedClassId || null,
+                    scheduleId: selectedScheduleId || null
+                };
+
 
             if (editId) {
                 // CẬP NHẬT phiếu đăng ký
@@ -2311,8 +2639,32 @@
                     saveData('students', students);
                 }
 
-                showNotification(`Tạo phiếu ĐK thành công! Mã: ${regCode}`, 'success');
+                showNotification(`Tạo phiếu ĐK thành công! Mã: ${regCode}`, 'success');        showNotification(`Tạo phiếu ĐK thành công! Mã: ${regCode}`, 'success');
+
+                // Tự động gán vào lớp nếu đã chọn lớp
+                if (selectedClassId) {
+                    const alreadyAssigned = classStudents.some(cs => cs.registrationId === registrations[registrations.length - 1].id && cs.status === 'active');
+                    if (!alreadyAssigned) {
+                        const newReg = registrations[registrations.length - 1];
+                        classStudents.push({
+                            id: generateId(),
+                            classId: selectedClassId,
+                            studentId: reg.studentId || studentId,
+                            registrationId: newReg.id,
+                            totalSessions: totalSessions,
+                            completedSessions: 0,
+                            remainingSessions: totalSessions,
+                            scheduleId: selectedScheduleId || null,
+                            status: 'active',
+                            enrolledAt: new Date().toISOString()
+                        });
+                        saveData('classStudents', classStudents);
+                        const cls = classes.find(c => c.id === selectedClassId);
+                        showNotification('✅ Đã gán vào lớp: ' + (cls ? cls.className : ''), 'info');
+                    }
+                }
             }
+
 
             saveData('registrations', registrations);
             closeModal('registrationModal');
@@ -2350,6 +2702,21 @@
                 const pkg = r.packageId ? packages.find(p => p.id === r.packageId) : null;
                 const sessionsDisplay = r.totalSessions ? `${r.totalSessions} buổi` : (pkg ? `${pkg.sessions} buổi` : '-');
 
+                // Tìm thông tin lớp
+                let classInfo = '<span class="text-muted">Chưa gán</span>';
+                const activeCS = classStudents.find(cs => cs.registrationId === r.id && cs.status === 'active');
+                if (activeCS) {
+                    const cls = classes.find(c => c.id === activeCS.classId);
+                    const scheds = classSchedules.filter(s => s.classId === activeCS.classId && s.isActive);
+                    const schedText = scheds.map(s => getDayShort(s.dayOfWeek) + ' ' + s.startTime + '-' + s.endTime).join(', ');
+                    classInfo = `<strong>${cls ? cls.className : 'N/A'}</strong>`;
+                    if (schedText) classInfo += `<br><small class="text-muted">${schedText}</small>`;
+                    classInfo += `<br><small>Đã học: <strong>${activeCS.completedSessions || 0}</strong> / ${activeCS.totalSessions} buổi</small>`;
+                } else if (r.classId) {
+                    const cls = classes.find(c => c.id === r.classId);
+                    classInfo = cls ? `<strong>${cls.className}</strong><br><small class="text-muted">Chưa gán chính thức</small>` : '<span class="text-muted">Chưa gán</span>';
+                }
+
                 return `
                     <tr>
                         <td><strong class="text-primary">${r.regCode}</strong></td>
@@ -2359,20 +2726,21 @@
                         </td>
                         <td>
                             <span class="subject-tag">${r.subject}</span><br>
-                            <small class="text-muted">${pkg ? pkg.name : 'Gói tùy chỉnh'}</small>
+                            <small class="text-muted">${pkg ? pkg.name : 'Gói tùy chỉnh'} - ${sessionsDisplay}</small>
                         </td>
-                        <td><strong>${sessionsDisplay}</strong></td>
+                        <td>${classInfo}</td>
                         <td>
-                            ${formatCurrency(r.tuitionFee)}
-                            ${r.discountAmount > 0 ? `<br><small class="text-danger">-${formatCurrency(r.discountAmount)}</small>` : ''}
+                            ${r.discountAmount > 0 ? `<small class="text-danger">-${formatCurrency(r.discountAmount)}</small><br>` : ''}
+                            <strong class="text-success">${formatCurrency(r.finalAmount)}</strong>
                         </td>
-                        <td><strong class="text-success">${formatCurrency(r.finalAmount)}</strong></td>
                         <td>${formatDate(r.registrationDate)}</td>
                         <td>
                             <div class="action-buttons">
-                                <button class="action-btn view" onclick="viewRegistration('${r.id}')" title="Xem & In">👁️</button>
-                                ${canEdit('registrations') ? `<button class="action-btn edit" onclick="editRegistration('${r.id}')" title="Sửa">✏️</button>` : ''}
-                                ${canDelete('registrations') ? `<button class="action-btn delete" onclick="deleteRegistration('${r.id}')" title="Xóa">🗑️</button>` : ''}
+                                <button class="action-btn view" onclick="viewRegistration('${r.id}')" title="Xem & In">👁</button>
+                                <button class="action-btn receipt" onclick="quickCreateReceipt('${r.id}')" title="Tạo biên lai">🧾</button>
+                                <button class="action-btn schedule" onclick="openTransferClassModal('${r.id}')" title="Chuyển lớp">🔄</button>
+                                ${canEdit('registrations') ? `<button class="action-btn edit" onclick="editRegistration('${r.id}')" title="Sửa">✏</button>` : ''}
+                                ${canDelete('registrations') ? `<button class="action-btn delete" onclick="deleteRegistration('${r.id}')" title="Xóa">🗑</button>` : ''}
                             </div>
                         </td>
                     </tr>
@@ -2382,13 +2750,34 @@
             renderPagination('registrationsPagination', 'registrations', total, totalPages, currentPage);
         }
 
-
         function viewRegistration(id) {
             const reg = registrations.find(r => r.id === id);
             if (!reg) return;
-            document.getElementById('registrationPreviewContent').innerHTML = `<div style="text-align:center;padding:20px;"><h3>${reg.regCode}</h3><p>${reg.studentName} - ${reg.subject}</p><p><strong>${formatCurrency(reg.finalAmount)}</strong></p></div>`;
+            const student = students.find(s => s.id === reg.studentId);
+            if (typeof generateRegistrationHTML === 'function') {
+                document.getElementById('registrationPreviewContent').innerHTML = generateRegistrationHTML(reg, student);
+            } else {
+                const pkg = reg.packageId ? packages.find(p => p.id === reg.packageId) : null;
+                document.getElementById('registrationPreviewContent').innerHTML = `
+                    <div style="padding:20px;">
+                        <h3 style="text-align:center;color:#1e40af;">PHIẾU ĐĂNG KÝ</h3>
+                        <p style="text-align:center;color:#475569;">Mã: ${reg.regCode}</p>
+                        <hr>
+                        <p><strong>Học viên:</strong> ${reg.studentName || 'N/A'}</p>
+                        <p><strong>Phụ huynh:</strong> ${reg.parentName || ''} - ${reg.parentPhone || ''}</p>
+                        <p><strong>Môn học:</strong> ${reg.subject}</p>
+                        <p><strong>Gói:</strong> ${pkg ? pkg.name : 'Tùy chỉnh'}</p>
+                        <p><strong>Số buổi:</strong> ${reg.totalSessions || (pkg ? pkg.sessions : '-')}</p>
+                        <p><strong>Học phí:</strong> ${formatCurrency(reg.tuitionFee)}</p>
+                        ${reg.discountAmount > 0 ? `<p><strong>Giảm giá:</strong> -${formatCurrency(reg.discountAmount)}</p>` : ''}
+                        <p style="font-size:18px;color:#27AE60;"><strong>Thành tiền: ${formatCurrency(reg.finalAmount)}</strong></p>
+                        <p><strong>Ngày ĐK:</strong> ${formatDate(reg.registrationDate)}</p>
+                        ${reg.notes ? `<p><strong>Ghi chú:</strong> ${reg.notes}</p>` : ''}
+                    </div>`;
+            }
             openModal('viewRegistrationModal');
         }
+
 
         function deleteRegistration(id) {
             if (!confirm('Xóa phiếu ĐK này?')) return;
@@ -2398,10 +2787,144 @@
             renderRegistrationsTable();
         }
 
+        function editRegistration(id) {
+        const reg = registrations.find(r => r.id === id);
+        if (!reg) return;
+        
+        // Set edit mode
+        document.getElementById('editRegId').value = reg.id;
+        
+        // Populate student dropdown
+        populateRegStudentDropdown();
+        
+        // Mở rộng dropdown cho cả học viên đã đăng ký
+        const allEligible = students.filter(s => s.status === 'Chờ Đăng Ký' || s.status === 'Đã Đăng Ký');
+        document.getElementById('regStudentSelect').innerHTML = '<option value="">-- Chọn học viên --</option>' +
+            allEligible.map(s => `<option value="${s.id}">${s.name} - ${s.parentPhone}</option>`).join('');
+        
+        // Set student
+        document.getElementById('regStudentSelect').value = reg.studentId;
+        document.getElementById('regStudentId').value = reg.studentId;
+        onRegStudentChange();
+        
+        // Set subject
+        document.getElementById('regSubject').value = reg.subject;
+        loadPackagesForSubject();
+        
+        // Set package
+        if (reg.packageId) {
+            document.getElementById('regPackage').value = reg.packageId;
+            applyPackageFee();
+        }
+        
+        // Set other fields
+        document.getElementById('regTotalSessions').value = reg.totalSessions || '';
+        document.getElementById('regTuitionFee').value = formatNumberInput(reg.tuitionFee);
+        document.getElementById('regStartDate').value = reg.startDate || '';
+        document.getElementById('regDate').value = reg.registrationDate || '';
+        document.getElementById('regNotes').value = reg.notes || '';
+        
+        // Set promotions
+        renderPromotionCheckboxes();
+        if (reg.promotionIds && reg.promotionIds.length > 0) {
+            reg.promotionIds.forEach(promoId => {
+                const cb = document.querySelector(`input[name="regPromotions"][value="${promoId}"]`);
+                if (cb) cb.checked = true;
+            });
+        }
+        
+            calculateFinalAmount();
+
+            // Load lớp theo môn và set lớp đã chọn
+            if (typeof populateRegClassDropdown === 'function') {
+                populateRegClassDropdown();
+                if (reg.classId) {
+                    document.getElementById('regClassSelect').value = reg.classId;
+                    onRegClassChange();
+                    if (reg.scheduleId) {
+                        document.getElementById('regScheduleSelect').value = reg.scheduleId;
+                    }
+                }
+            }
+
+            // Update title
+            const modalTitle = document.querySelector('#registrationModal .modal-header h2');
+            if (modalTitle) modalTitle.textContent = '✏️ Sửa Phiếu Đăng Ký';
+            
+            openModal('registrationModal');
+        }
+
         function printRegistration() { window.print(); }
         function downloadRegistrationPDF() { showNotification('Đang tải PDF...', 'info'); }
 
         // ===== RECEIPTS =====
+
+        // ===== TẠO BIÊN LAI NHANH TỪ PHIẾU ĐK =====
+        function quickCreateReceipt(regId) {
+            const reg = registrations.find(r => r.id === regId);
+            if (!reg) {
+                showNotification('Không tìm thấy phiếu ĐK!', 'error');
+                return;
+            }
+
+            const student = students.find(s => s.id === reg.studentId);
+            if (!student) {
+                showNotification('Không tìm thấy học viên!', 'error');
+                return;
+            }
+
+            // Mở modal biên lai
+            document.getElementById('editReceiptId').value = '';
+            document.getElementById('receiptForm').reset();
+            document.getElementById('receiptDate').value = new Date().toISOString().split('T')[0];
+
+            // Populate dropdown học viên
+            populateReceiptStudentDropdown();
+
+            // Mở modal trước
+            openModal('receiptModal');
+
+            // Set giá trị sau một chút để DOM đã render
+            setTimeout(function() {
+                // Set học viên
+                const receiptStudentSelect = document.getElementById('receiptStudentId');
+                receiptStudentSelect.value = student.id;
+
+                // Cập nhật search input nếu có searchable wrapper
+                const wrapper = receiptStudentSelect.closest('.searchable-select-wrapper');
+                if (wrapper) {
+                    const searchInput = wrapper.querySelector('.search-input');
+                    if (searchInput) searchInput.value = student.name + ' - ' + student.parentPhone;
+                }
+
+                // Điền thông tin phụ huynh
+                document.getElementById('receiptParentName').value = student.parentName || '';
+                document.getElementById('receiptParentPhone').value = student.parentPhone || '';
+
+                // Load danh sách phiếu ĐK của học viên
+                const studentRegs = registrations.filter(r => r.studentId === student.id);
+                document.getElementById('receiptRegistrationSelect').innerHTML = '<option value="">-- Chọn phiếu ĐK --</option>' +
+                    studentRegs.map(r => `<option value="${r.id}">${r.regCode} - ${r.subject} - ${formatCurrency(r.finalAmount)}</option>`).join('');
+
+                // Tự động chọn phiếu ĐK đang thao tác
+                document.getElementById('receiptRegistrationSelect').value = regId;
+
+                // Điền nội dung và số tiền từ phiếu ĐK
+                document.getElementById('receiptDescription').value = 'Học phí ' + reg.subject + ' (' + reg.regCode + ')';
+                document.getElementById('receiptAmount').value = formatNumberInput(reg.finalAmount);
+
+                // Đặt loại mặc định
+                const receiptType = document.getElementById('receiptType');
+                if (receiptType) receiptType.value = 'Biên Lai Điện Tử';
+
+                // Cập nhật tiêu đề
+                const modalTitle = document.querySelector('#receiptModal .modal-header h2');
+                if (modalTitle) modalTitle.textContent = '🧾 Tạo Biên Lai - ' + student.name;
+
+            }, 200);
+        }
+
+
         function openReceiptModal() {
             document.getElementById('editReceiptId').value = '';
             document.getElementById('receiptForm').reset();
@@ -2417,9 +2940,15 @@
         }
 
         function populateReceiptStudentDropdown() {
-            const eligible = students.filter(s => s.status === 'Đã Đăng Ký');
-            document.getElementById('receiptStudentId').innerHTML = '<option value="">-- Chọn học viên --</option>' +
+            const eligible = students.filter(s => s.status === 'Đã Đăng Ký' || s.status === 'Chờ Đăng Ký');
+            const select = document.getElementById('receiptStudentId');
+            select.innerHTML = '<option value="">-- Chọn học viên --</option>' +
                 eligible.map(s => `<option value="${s.id}">${s.name} - ${s.parentPhone}</option>`).join('');
+            // Khởi tạo searchable
+            makeSelectSearchable('receiptStudentId', eligible.map(s => ({ value: s.id, label: s.name + ' - ' + s.parentPhone })), function(val) {
+                select.value = val;
+                fillReceiptStudentInfo();
+            });
         }
 
         function fillReceiptStudentInfo() {
@@ -2500,7 +3029,7 @@
                 // THÊM MỚI - Tạo receiptCode mới
                 const newReceipt = {
                     id: generateId(),
-                    receiptCode: generateReceiptCode(), // Tạo mã mới
+                    receiptCode: typeof generateReceiptCode === 'function' ? generateReceiptCode() : ('BL-' + Date.now().toString().slice(-8)),
                     ...data,
                     createdBy: currentUser?.id || null,
                     createdAt: new Date().toISOString()
@@ -2550,7 +3079,7 @@
                 const student = students.find(s => s.id === r.studentId);
                 return `
             <tr>
-                <td><strong>#${String(total - idx).padStart(4, '0')}</strong></td>
+                <td><strong class="text-primary">${r.receiptCode || '#' + String(total - idx).padStart(4, '0')}</strong></td>
                 <td><span class="subject-tag">${r.type}</span></td>
                 <td>${student?.name || 'N/A'}</td>
                 <td>${r.description}</td>
@@ -2570,7 +3099,25 @@
         function viewReceipt(id) {
             const receipt = receipts.find(r => r.id === id);
             if (!receipt) return;
-            document.getElementById('receiptPreviewContent').innerHTML = `<div style="text-align:center;padding:20px;"><h3>${receipt.type}</h3><p>${receipt.description}</p><p><strong>${formatCurrency(receipt.amount)}</strong></p></div>`;
+            const student = students.find(s => s.id === receipt.studentId);
+            const reg = receipt.registrationId ? registrations.find(r => r.id === receipt.registrationId) : null;
+            if (typeof generateReceiptHTML === 'function') {
+                document.getElementById('receiptPreviewContent').innerHTML = generateReceiptHTML(receipt, student, reg);
+            } else {
+                document.getElementById('receiptPreviewContent').innerHTML = `
+                    <div style="padding:20px;">
+                        <h3 style="text-align:center;color:#1e40af;">BIÊN LAI THU TIỀN</h3>
+                        <p style="text-align:center;color:#475569;">Mã: ${receipt.receiptCode || ''}</p>
+                        <hr>
+                        <p><strong>Học viên:</strong> ${student ? student.name : 'N/A'}</p>
+                        <p><strong>Phụ huynh:</strong> ${receipt.parentName || ''} - ${receipt.parentPhone || ''}</p>
+                        <p><strong>Loại:</strong> ${receipt.type}</p>
+                        <p><strong>Nội dung:</strong> ${receipt.description}</p>
+                        <p style="font-size:18px;color:#27AE60;"><strong>Số tiền: ${formatCurrency(receipt.amount)}</strong></p>
+                        <p><strong>Ngày:</strong> ${formatDate(receipt.date)}</p>
+                        ${receipt.notes ? `<p><strong>Ghi chú:</strong> ${receipt.notes}</p>` : ''}
+                    </div>`;
+            }
             openModal('viewReceiptModal');
         }
 
@@ -4564,7 +5111,7 @@
             const roomSelect = document.getElementById('scheduleRoom');
             if (!roomSelect) return;
 
-            const activeRooms = getActiveRooms();
+            const activeRooms = typeof getActiveRooms === 'function' ? getActiveRooms() : rooms.filter(r => r.status === 'active');
 
             // Kiểm tra nếu đã là dropdown thì populate, nếu là input thì giữ nguyên
             if (roomSelect.tagName === 'SELECT') {
@@ -8127,11 +8674,19 @@
 
         // ===== 32.8 In Phiếu Đăng Ký =====
         function printRegistration() {
-            const modal = document.getElementById('viewRegistrationModal');
-            const printDoc = modal.querySelector('.print-document');
-            if (!printDoc) return;
-
-            openPrintWindow(printDoc.outerHTML, 'Phiếu Đăng Ký');
+            const content = document.getElementById('registrationPreviewContent');
+            if (!content || !content.innerHTML.trim()) {
+                showNotification('Không có nội dung để in!', 'error');
+                return;
+            }
+            if (typeof printDocument === 'function') {
+                printDocument(content.innerHTML);
+            } else {
+                const printWin = window.open('', '_blank');
+                printWin.document.write('<html><head><title>In phiếu ĐK</title></head><body>' + content.innerHTML + '</body></html>');
+                printWin.document.close();
+                printWin.print();
+            }
         }
 
         // ===== 32.9 In Biên Lai =====
@@ -8287,20 +8842,25 @@
 
         // ===== 32.11 Tải PDF Phiếu Đăng Ký =====
         function downloadRegistrationPDF() {
-            const modal = document.getElementById('viewRegistrationModal');
-            const printDoc = modal.querySelector('.print-document');
-            if (!printDoc) {
-                showNotification('Không tìm thấy nội dung!', 'error');
+            const content = document.getElementById('registrationPreviewContent');
+            if (!content || !content.innerHTML.trim()) {
+                showNotification('Không có nội dung để tải PDF!', 'error');
                 return;
             }
-
-            // Tìm mã phiếu
-            const regCodeMatch = printDoc.innerHTML.match(/DK\d{6}-[A-Z0-9]+/);
-            const filename = regCodeMatch ? `PhieuDK_${regCodeMatch[0]}.pdf` : 'PhieuDangKy.pdf';
-
-            downloadPDF(printDoc, filename);
+            if (typeof html2pdf !== 'undefined') {
+                const opt = {
+                    margin: 10,
+                    filename: 'PhieuDangKy.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                html2pdf().set(opt).from(content).save();
+                showNotification('Đang tải PDF...', 'info');
+            } else {
+                showNotification('Thư viện html2pdf chưa được tải!', 'error');
+            }
         }
-
         // ===== 32.12 Tải PDF Biên Lai =====
         function downloadReceiptPDF() {
             if (!currentViewReceiptId) return;
@@ -8795,39 +9355,6 @@
             if (modalTitle) modalTitle.textContent = '📋 Tạo Phiếu Đăng Ký';
 
             renderAll();
-        };
-
-        // ===== CẬP NHẬT HÀM RENDER BẢNG PHIẾU ĐK (thêm nút Sửa) =====
-        renderRegistrationsTable = function () {
-            const filtered = getFilteredRegistrations();
-            const { data, total, totalPages, currentPage } = getPaginatedData(filtered, 'registrations');
-            const tbody = document.getElementById('registrationsTableBody');
-
-            if (data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📋</div><p>Không có phiếu ĐK</p></div></td></tr>`;
-                renderPagination('registrationsPagination', 'registrations', 0, 0, 1);
-                return;
-            }
-
-            tbody.innerHTML = data.map(r => `
-                <tr>
-                    <td><strong class="text-primary">${r.regCode}</strong></td>
-                    <td>${r.studentName || 'N/A'}</td>
-                    <td><span class="subject-tag">${r.subject}</span><br><small class="text-muted">${formatCurrency(r.tuitionFee)}</small></td>
-                    <td class="text-danger">${r.discountAmount > 0 ? '-' + formatCurrency(r.discountAmount) : '-'}</td>
-                    <td><strong class="text-success">${formatCurrency(r.finalAmount)}</strong></td>
-                    <td>${formatDate(r.registrationDate)}</td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="action-btn view" onclick="viewRegistration('${r.id}')" title="Xem">👁️</button>
-                            ${canEdit('registrations') ? `<button class="action-btn edit" onclick="editRegistration('${r.id}')" title="Sửa">✏️</button>` : ''}
-                            ${canDelete('registrations') ? `<button class="action-btn delete" onclick="deleteRegistration('${r.id}')" title="Xóa">🗑️</button>` : ''}
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-
-            renderPagination('registrationsPagination', 'registrations', total, totalPages, currentPage);
         };
 
         // ===== CẬP NHẬT HÀM RENDER BẢNG BIÊN LAI (thêm nút Sửa) =====
@@ -9583,6 +10110,7 @@
         }
 
         console.log('🧾 Module Biên lai (Thu/Chi + Tổng hợp) đã được tải!');
+
         /* ============================================================
         ✅ MODULE 3: ĐIỂM DANH - SỬA & THỐNG KÊ
         ============================================================ */
