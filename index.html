@@ -359,8 +359,8 @@
                                     <th>Mã Phiếu</th>
                                     <th>Học Viên</th>
                                     <th>Môn Học / Gói</th>
-                                    <th>Giảm Giá</th>
-                                    <th>Thành Tiền</th>
+                                    <th>Lớp / Ca Học</th>
+                                    <th>Giảm Giá/ Thành Tiền</th>
                                     <th>Ngày ĐK</th>
                                     <th>Thao Tác</th>
                                 </tr>
@@ -1595,9 +1595,8 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Số Buổi Học *</label>
-                            <input type="number" id="regTotalSessions" required="" min="1" max="200" placeholder="VD: 8">
-                            <small class="text-muted" style="font-size: 11px;">Tự động theo gói, có thể chỉnh
-                                sửa</small>
+                            <input type="number" id="regTotalSessions" required min="1" max="200" placeholder="VD: 8">
+                            <small class="text-muted" style="font-size: 11px;">Tự động theo gói, có thể chỉnh sửa</small>
                         </div>
                         <div class="form-group">
                             <label>Ngày Bắt Đầu Học</label>
@@ -1605,6 +1604,24 @@
                             <small class="text-muted" style="font-size: 11px;">Để trống nếu chưa xác định</small>
                         </div>
                     </div>
+                    <!-- Lớp học & Ca học -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Lớp Học</label>
+                            <select id="regClassSelect" onchange="onRegClassChange()">
+                                <option value="">-- Chọn lớp (tùy chọn) --</option>
+                            </select>
+                            <small class="text-muted" style="font-size: 11px;">Chọn lớp để tự động gán khi lưu</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Ca Học</label>
+                            <select id="regScheduleSelect">
+                                <option value="">-- Chọn ca học --</option>
+                            </select>
+                            <small class="text-muted" style="font-size: 11px;">Ca học trong tuần của lớp đã chọn</small>
+                        </div>
+                    </div>
+
 
                     <!-- Học phí -->
                     <div class="form-group">
@@ -2236,6 +2253,67 @@
             </div>
         </div>
     </div>
+
+        <!-- Transfer Class Modal -->
+    <div id="transferClassModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🔄 Chuyển Lớp Học</h2>
+                <button class="modal-close" onclick="closeModal('transferClassModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="transferClassForm" onsubmit="saveTransferClass(event)">
+                    <input type="hidden" id="transferClassStudentId">
+                    <input type="hidden" id="transferRegId">
+                    <div class="quick-view-section">
+                        <h4>📋 Thông tin hiện tại</h4>
+                        <div class="quick-view-row">
+                            <span class="quick-view-label">Học viên:</span>
+                            <span class="quick-view-value" id="transferStudentName"></span>
+                        </div>
+                        <div class="quick-view-row">
+                            <span class="quick-view-label">Môn học:</span>
+                            <span class="quick-view-value" id="transferSubject"></span>
+                        </div>
+                        <div class="quick-view-row">
+                            <span class="quick-view-label">Lớp hiện tại:</span>
+                            <span class="quick-view-value" id="transferCurrentClass"></span>
+                        </div>
+                        <div class="quick-view-row">
+                            <span class="quick-view-label">Đã học:</span>
+                            <span class="quick-view-value" id="transferCompletedSessions"></span>
+                        </div>
+                        <div class="quick-view-row">
+                            <span class="quick-view-label">Còn lại:</span>
+                            <span class="quick-view-value" id="transferRemainingSessions"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Chuyển đến lớp *</label>
+                        <select id="transferNewClassSelect" required onchange="onTransferClassChange()">
+                            <option value="">-- Chọn lớp mới --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Ca học mới</label>
+                        <select id="transferNewScheduleSelect">
+                            <option value="">-- Ca học lớp mới --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Lý do chuyển</label>
+                        <textarea id="transferReason" rows="2" placeholder="VD: Đổi lịch phù hợp hơn"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('transferClassModal')">Hủy</button>
+                <button type="submit" form="transferClassForm" class="btn btn-warning">🔄 Xác nhận chuyển lớp</button>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Debt Payment Modal -->
     <div id="debtPaymentModal" class="modal">
         <div class="modal-content">
